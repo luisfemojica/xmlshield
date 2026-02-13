@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="description" content="XMLShield - Privacy-first XML formatter. 100% local, zero dependencies, zero compromise.">
+<title>XMLShield - Your Local XML Fortress</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root{
+    --bg:#f4f4f4; --fg:#222; --panel:#fff; --border:#ccc; --btn:#0078ff; --btn2:#555; --err:#b00;
+    --panel-dark:#1e1e1e; --bg-dark:#121212; --fg-dark:#ddd; --border-dark:#444;
+    --green:#0aa15b; --purple:#6c30c8; --orange:#ff8c00; --blue:#667eea;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font: 15px system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+    color: var(--fg);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  body.dark { 
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: var(--fg-dark); 
+  }
+
+  .container {
+    max-width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+  }
+
+  body.dark .container { background: var(--bg-dark); }
+
+  header {
+    padding: 1.5rem;
+    background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+
+  body.dark header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .controls {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  button {
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  button:hover { 
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+
+  #fmt { background: var(--btn); color: #fff; }
+  #min { background: var(--green); color: #fff; }
+  #copy { background: var(--btn2); color: #fff; }
+  #download { background: var(--orange); color: #fff; }
+  #theme { background: #333; color: #fff; }
+  #toggleView { background: var(--purple); color:#fff; }
+
+  .options-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+    font-size: 0.9rem;
+    padding: 0.5rem 0;
+  }
+
+  label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    color: rgba(255,255,255,0.95);
+  }
+
+  label > input[type="number"] { 
+    width: 64px;
+    padding: 0.3rem;
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.1);
+    color: white;
+    font-weight: 600;
+  }
+
+  input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+
+  .sep { 
+    margin: 0 0.5rem; 
+    opacity: 0.5;
+    color: rgba(255,255,255,0.6);
+  }
+
+  .kpi-row {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.9);
+  }
+
+  .kpi { 
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    color: white;
+  }
+
+  #err { 
+    color: #ffeb3b;
+    font-weight: 700;
+    background: rgba(255,0,0,0.2);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    margin-top: 0.5rem;
+    display: none;
+  }
+
+  #err:not(:empty) { display: block; }
+
+  .workspace {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    overflow: hidden;
+  }
+
+  .panel {
+    display: flex;
+    flex-direction: column;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+  }
+
+  body.dark .panel { 
+    background: var(--panel-dark);
+    border-right-color: var(--border-dark);
+  }
+
+  .panel:last-child { border-right: none; }
+
+  .panel-header {
+    padding: 0.8rem 1rem;
+    background: var(--btn2);
+    color: white;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  body.dark .panel-header {
+    background: #1a1a1a;
+    border-bottom-color: var(--border-dark);
+  }
+
+  textarea, .viewer {
+    flex: 1;
+    width: 100%;
+    font: 14px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    padding: 1rem;
+    border: none;
+    resize: none;
+    outline: none;
+    line-height: 1.6;
+    overflow: auto;
+  }
+
+  #in {
+    background: var(--panel);
+    color: var(--fg);
+  }
+
+  body.dark #in {
+    background: var(--panel-dark);
+    color: var(--fg-dark);
+  }
+
+  #out {
+    background: #fafafa;
+    color: var(--fg);
+  }
+
+  body.dark #out {
+    background: #0d0d0d;
+    color: var(--fg-dark);
+  }
+
+  .viewer {
+    white-space: pre;
+    overflow: auto;
+  }
+
+  #outHtml {
+    background: #fafafa;
+  }
+
+  body.dark #outHtml {
+    background: #0d0d0d;
+  }
+
+  .drop {
+    outline: 3px dashed var(--purple) !important;
+    outline-offset: -8px;
+    background: rgba(108, 48, 200, 0.05) !important;
+  }
+
+  /* Resaltado de sintaxis XML */
+  .syntax { white-space: pre; }
+  .syntax .tag     { color: #569CD6; }
+  .syntax .attr    { color: #9CDCFE; }
+  .syntax .value   { color: #CE9178; }
+  .syntax .comment { color: #6A9955; }
+  .syntax .symbol  { color: #D4D4D4; }
+  body.dark .syntax .symbol { color: #BBBBBB; }
+
+  @media (max-width: 968px) {
+    .workspace {
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr 1fr;
+    }
+
+    .panel {
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+    }
+
+    body.dark .panel {
+      border-bottom-color: var(--border-dark);
+    }
+
+    .controls {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    button {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h2>🛡️ XMLShield • Your Local XML Fortress</h2>
+
+    <div class="controls">
+      <button id="fmt" title="Ctrl+Enter">✨ Formatear</button>
+      <button id="min" title="Ctrl+M">📦 Minificar</button>
+      <button id="toggleView" title="Ctrl+B">👁️ Vista: Resaltada</button>
+      <button id="copy">📋 Copiar</button>
+      <button id="download">💾 Descargar</button>
+      <button id="theme">🌙 Modo oscuro</button>
+    </div>
+
+    <div class="options-row">
+      <label>Sangría:
+        <input id="indent" type="number" value="2" min="0" max="16">
+      </label>
+      <label><input id="tabs" type="checkbox"> Usar tabs</label>
+      <label title="No elimina espacios significativos del documento al formatear">
+        <input id="preserve" type="checkbox"> Conservar espacios (formato)
+      </label>
+      <span class="sep">|</span>
+      <label title="No modifica espacios dentro de nodos de texto al minificar">
+        <input id="keepTextWS" type="checkbox" checked> Conservar espacios en texto (minificar)
+      </label>
+      <label title="Quita espacios redundantes en los atributos, sin tocar el texto entre comillas">
+        <input id="compactAttrs" type="checkbox" checked> Compactar atributos
+      </label>
+    </div>
+
+    <div class="kpi-row">
+      <span>📥 Entrada: <strong class="kpi" id="inSize">0</strong> bytes</span>
+      <span class="sep">•</span>
+      <span>📤 Salida: <strong class="kpi" id="outSize">0</strong> bytes</span>
+      <span class="sep">•</span>
+      <span>💰 Ahorro: <strong class="kpi" id="savings">0%</strong></span>
+    </div>
+
+    <div id="err"></div>
+  </header>
+
+  <div class="workspace">
+    <div class="panel">
+      <div class="panel-header">📝 Entrada XML (arrastra archivo o pega texto)</div>
+      <textarea id="in" placeholder="Pega aquí tu XML o arrastra un archivo .xml..."></textarea>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">✅ Salida Formateada</div>
+      <textarea id="out" class="viewer" placeholder="El resultado aparecerá aquí..."></textarea>
+      <div id="outHtml" class="viewer" style="display:none;"><div class="syntax"></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const $ = s => document.querySelector(s);
+  const inTa = $("#in"), outTa = $("#out"), outHtmlWrap = $("#outHtml"), outHtml = $("#outHtml .syntax");
+
+  let highlightView = true;
+  let lastOutputText = "";
+
+  // --- Utilidades ---
+  function bytesOf(str){ return new Blob([str]).size; }
+  function updateKPIs(input, output){
+    $("#inSize").textContent = bytesOf(input);
+    $("#outSize").textContent = bytesOf(output);
+    const i = bytesOf(input), o = bytesOf(output);
+    const save = i ? Math.max(0, Math.round((1 - o / i) * 100)) : 0;
+    $("#savings").textContent = isFinite(save) ? `${save}%` : "0%";
+  }
+  function showError(msg){ $("#err").textContent = msg || ""; console.error(msg); }
+  function clearError(){ showError(""); }
+
+  function setView(highlight){
+    highlightView = highlight;
+    $("#toggleView").textContent = (highlightView ? "👁️ Vista: Resaltada" : "👁️ Vista: Texto");
+    outHtmlWrap.style.display = highlightView ? "block" : "none";
+    outTa.style.display       = highlightView ? "none"  : "block";
+    renderOutput(lastOutputText);
+  }
+
+  function renderOutput(text){
+    lastOutputText = text || "";
+    if (highlightView) {
+      outHtml.innerHTML = highlightXML(lastOutputText);
+    } else {
+      outTa.value = lastOutputText;
+    }
+    updateKPIs(inTa.value, lastOutputText);
+  }
+
+  // --- Pretty print (indentación real por árbol DOM) ---
+  function prettyFormat(xml, indentChars = "  ", preserveWhitespace=false) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xml, "application/xml");
+    const err = doc.querySelector("parsererror");
+    if (err) throw new Error("XML inválido o mal formado.");
+
+    let output = "";
+    function walk(node, level) {
+      const indent = indentChars.repeat(level);
+
+      switch (node.nodeType) {
+        case Node.DOCUMENT_NODE:
+          for (let child of node.childNodes) walk(child, level);
+          break;
+
+        case Node.ELEMENT_NODE: {
+          let openTag = "<" + node.nodeName;
+          for (let attr of node.attributes) openTag += ` ${attr.name}="${attr.value}"`;
+
+          if (node.childNodes.length === 0) {
+            output += `${indent}${openTag}/>
+`;
+            return;
+          }
+
+          const hasElementChild = Array.from(node.childNodes).some(n => n.nodeType === Node.ELEMENT_NODE);
+          const textChildren = Array.from(node.childNodes).filter(n => n.nodeType === Node.TEXT_NODE);
+          const textJoined = textChildren.map(n => n.nodeValue).join("");
+          const textNormalized = preserveWhitespace ? textJoined : textJoined.replace(/\s+/g, " ").trim();
+
+          if (!hasElementChild && textNormalized.length > 0) {
+            output += `${indent}${openTag}>${textNormalized}</${node.nodeName}>
+`;
+          } else {
+            output += `${indent}${openTag}>
+`;
+            for (let child of node.childNodes) {
+              walk(child, level + 1);
+            }
+            output += `${indent}</${node.nodeName}>
+`;
+          }
+          break;
+        }
+
+        case Node.TEXT_NODE: {
+          const val = preserveWhitespace ? node.nodeValue : node.nodeValue.replace(/\s+/g, " ").trim();
+          if (val.length > 0) output += `${indent}${val}
+`;
+          break;
+        }
+
+        case Node.CDATA_SECTION_NODE:
+          output += `${indent}<![CDATA[${node.nodeValue}]]>
+`; break;
+
+        case Node.COMMENT_NODE:
+          output += `${indent}<!-- ${node.nodeValue.trim()} -->
+`; break;
+
+        case Node.PROCESSING_INSTRUCTION_NODE:
+          output += `${indent}<?${node.nodeName} ${node.nodeValue}?>
+`; break;
+      }
+    }
+
+    walk(doc.documentElement, 0);
+    return output;
+  }
+
+  // --- Recorrido recursivo de texto para minificado (sin TreeWalker) ---
+  function normalizeTextNodesRec(node){
+    for (let child = node.firstChild; child; child = child.nextSibling) {
+      if (child.nodeType === Node.TEXT_NODE) {
+        child.nodeValue = child.nodeValue.replace(/\s+/g, " ").trim();
+      } else if (child.nodeType === Node.ELEMENT_NODE) {
+        normalizeTextNodesRec(child);
+      }
+    }
+  }
+
+  // --- Minify (seguro, sin TreeWalker) ---
+  function minify(xml, opts){
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xml, "application/xml");
+    const err = doc.querySelector("parsererror");
+    if (err) throw new Error("XML inválido o mal formado.");
+
+    if (!opts.keepTextWS) normalizeTextNodesRec(doc);
+
+    let xmlOut = new XMLSerializer().serializeToString(doc);
+    xmlOut = xmlOut.replace(/>\s+</g, "><").trim();
+
+    if (opts.compactAttrs) {
+      xmlOut = xmlOut.replace(/\s*=\s*/g, "=");
+      xmlOut = xmlOut.replace(/<([^!\?][^>]+)>/g, (m, inner) => {
+        let out = '';
+        let inQuote = false, quoteChar = '';
+        for (let i=0;i<inner.length;i++){
+          const ch = inner[i];
+          if ((ch === '"' || ch === "'") && !inQuote){ inQuote = true; quoteChar = ch; out += ch; continue; }
+          if (inQuote && ch === quoteChar){ inQuote = false; quoteChar = ''; out += ch; continue; }
+          if (!inQuote) {
+            if (/\s/.test(ch)) {
+              if (out[out.length-1] !== ' ') out += ' ';
+            } else {
+              out += ch;
+            }
+          } else {
+            out += ch;
+          }
+        }
+        return `<${out.trim()}>`;
+      });
+      xmlOut = xmlOut.replace(/\s+\/>/g, "/>");
+    }
+
+    return xmlOut;
+  }
+
+  // --- Resaltado de sintaxis XML (sin dependencias) ---
+  function escapeHTML(s){
+    return s
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;");
+  }
+
+  function highlightXML(xml) {
+    let h = escapeHTML(xml);
+    h = h.replace(/(&lt;!--[\s\S]*?--&gt;)/g, '<span class="comment">$1</span>');
+    h = h.replace(/(&lt;\/?)([A-Za-z_][\w:\-.]*)([^\s\S]*?)(\/?\&gt;)/g,
+      (m, lt, tag, attrs, gt) =>
+        `<span class="symbol">${lt}</span><span class="tag">${tag}</span>${attrs}<span class="symbol">${gt}</span>`
+    );
+    h = h.replace(/([A-Za-z_][\w:\-.]*)=&quot;([\s\S]*?)&quot;/g,
+      '<span class="attr">$1</span>=<span class="value">"$2"</span>'
+    );
+    return `<div class="syntax">${h}</div>`;
+  }
+
+  // --- Eventos UI ---
+  $("#fmt").onclick = () => {
+    clearError();
+    try{
+      const indent = +$("#indent").value || 0;
+      const indentChars = $("#tabs").checked ? "	" : " ".repeat(indent);
+      const preserve = $("#preserve").checked;
+      const input = inTa.value;
+      const output = prettyFormat(input, indentChars, preserve);
+      renderOutput(output);
+    }catch(e){ showError(e.message); }
+  };
+
+  $("#min").onclick = () => {
+    clearError();
+    try{
+      const input = inTa.value;
+      const output = minify(input, {
+        keepTextWS: $("#keepTextWS").checked,
+        compactAttrs: $("#compactAttrs").checked
+      });
+      renderOutput(output);
+    }catch(e){ showError(e.message); }
+  };
+
+  $("#copy").onclick = async () => {
+    try{
+      await navigator.clipboard.writeText(lastOutputText || "");
+      const btn = $("#copy");
+      const label = btn.textContent;
+      btn.textContent = "✅ ¡Copiado!";
+      setTimeout(()=>btn.textContent = label, 1200);
+    }catch{
+      showError("No se pudo copiar al portapapeles (permiso del navegador).");
+    }
+  };
+
+  $("#download").onclick = () => {
+    if (!lastOutputText) {
+      showError("No hay nada que descargar. Formatea o minifica primero.");
+      return;
+    }
+    const blob = new Blob([lastOutputText], { type: 'application/xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+    a.href = url;
+    a.download = `xml_formatted_${timestamp}.xml`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    const btn = $("#download");
+    const label = btn.textContent;
+    btn.textContent = "✅ Descargado!";
+    setTimeout(()=>btn.textContent = label, 1200);
+  };
+
+  $("#theme").onclick = () => {
+    document.body.classList.toggle("dark");
+    const isDark = document.body.classList.contains("dark");
+    $("#theme").textContent = isDark ? "☀️ Modo claro" : "🌙 Modo oscuro";
+  };
+
+  $("#toggleView").onclick = () => setView(!highlightView);
+
+  // KPIs en vivo al escribir/pegar
+  inTa.addEventListener("input", () => updateKPIs(inTa.value, lastOutputText));
+
+  // Drag & drop de archivos XML al panel de entrada
+  ;["dragenter","dragover"].forEach(ev => inTa.addEventListener(ev, e=>{
+    e.preventDefault(); inTa.classList.add("drop");
+  }));
+  ;["dragleave","drop"].forEach(ev => inTa.addEventListener(ev, e=>{
+    e.preventDefault(); inTa.classList.remove("drop");
+  }));
+  inTa.addEventListener("drop", async e => {
+    const f = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (!f) return;
+    if (!/\.xml$/i.test(f.name)) { showError("⚠️ Arrastra un archivo .xml"); return; }
+    const txt = await f.text();
+    inTa.value = txt;
+    updateKPIs(inTa.value, lastOutputText);
+    clearError();
+  });
+
+  // Atajos: Ctrl+Enter (Formatear), Ctrl+M (Minificar), Ctrl+B (Vista)
+  document.addEventListener("keydown", e=>{
+    if (e.ctrlKey && e.key === "Enter"){ e.preventDefault(); $("#fmt").click(); }
+    if (e.ctrlKey && (e.key.toLowerCase() === "m")){ e.preventDefault(); $("#min").click(); }
+    if (e.ctrlKey && (e.key.toLowerCase() === "b")){ e.preventDefault(); $("#toggleView").click(); }
+  });
+
+  // Vista por defecto: Resaltada
+  setView(true);
+  updateKPIs("", "");
+})();
+</script>
+</body>
+</html>
