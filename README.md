@@ -5,7 +5,7 @@
 
 ### Inicio Rápido
 
-1. **Abrir archivo:** Doble clic en `xml_formatter_mejorado.html`
+1. **Abrir archivo:** Doble clic en `xmlshield.html`
 2. **Pegar XML:** En el panel izquierdo
 3. **Formatear:** Clic en "✨ Formatear" o Ctrl+Enter
 4. **Resultado:** Aparece en panel derecho con sintaxis resaltada
