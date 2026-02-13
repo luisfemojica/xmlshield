@@ -154,19 +154,22 @@
 
   #err:not(:empty) { display: block; }
 
-  .workspace {
-    flex: 1;
+    .workspace {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);  /* minmax evita que se compriman */
     gap: 0;
+    flex: 1;
     overflow: hidden;
   }
 
-  .panel {
+    .panel {
     display: flex;
     flex-direction: column;
     background: var(--panel);
     border-right: 1px solid var(--border);
+    height: calc(100vh - 250px);
+    min-width: 0;  /* Permite que se encoja si necesario */
+    max-width: 100%;  /* No excede su espacio */
   }
 
   body.dark .panel { 
@@ -253,10 +256,13 @@
   body.dark .syntax .symbol { color: #BBBBBB; }
 
   @media (max-width: 968px) {
-    .workspace {
-      grid-template-columns: 1fr;
-      grid-template-rows: 1fr 1fr;
-    }
+      .workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);  /* minmax evita que se compriman */
+    gap: 0;
+    flex: 1;
+    overflow: hidden;
+  }
 
     .panel {
       border-right: none;
@@ -276,6 +282,35 @@
       width: 100%;
       justify-content: center;
     }
+  }
+
+
+  /* ============================================
+     FIX DEFINITIVO: Anchos fijos + Scroll
+     ============================================ */
+
+  /* Contenedor de salida con scroll independiente */
+  #outHtml {
+    height: 100%;
+    width: 100%;
+    overflow: auto;
+    box-sizing: border-box;
+  }
+
+  /* Contenido que NO empuja otros paneles */
+  #outHtml .syntax {
+    display: block;
+    width: max-content;  /* Se expande pero DENTRO de su contenedor */
+    min-width: 100%;
+    white-space: pre;
+    height: auto;
+    min-height: 100%;
+  }
+
+  /* Textarea de salida también con ancho contenido */
+  #out {
+    min-width: 100%;
+    width: max-content;
   }
 </style>
 </head>
@@ -513,7 +548,7 @@
     h = h.replace(/([A-Za-z_][\w:\-.]*)=&quot;([\s\S]*?)&quot;/g,
       '<span class="attr">$1</span>=<span class="value">"$2"</span>'
     );
-    return `<div class="syntax">${h}</div>`;
+    return h;
   }
 
   // --- Eventos UI ---
