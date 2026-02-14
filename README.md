@@ -49,7 +49,7 @@ XMLShield es una herramienta de formateo y minificación de XML que funciona com
 4. ¡Listo! Formatea o minifica con un click
 
 ### Método 2: Desde el Navegador
-1. Ve a `https://tu-dominio.com/xmlshield.html`
+1. Ve a `https://luisfemojica.github.io/xmlshield/`
 2. Agrega a favoritos para uso offline
 3. Funciona sin conexión después de la primera carga
 
