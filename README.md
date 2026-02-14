@@ -4,10 +4,11 @@
 
 XMLShield es una herramienta de formateo y minificación de XML que funciona completamente en tu navegador, sin enviar datos a ningún servidor. Diseñada en respuesta a preocupaciones sobre la seguridad de herramientas online, XMLShield te da control total sobre tus archivos XML sensibles.
 
-[![Version](https://img.shields.io/badge/version-2.0-blue.svg)](https://github.com/yourusername/xmlshield)
+[![Version](https://img.shields.io/badge/version-2.0-blue.svg)](https://github.com/luisfemojica/xmlshield/releases)
 [![License](https://img.shields.io/badge/license-Public%20Domain-green.svg)](LICENSE)
-[![No Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg)](index.html)
-[![Offline](https://img.shields.io/badge/offline-100%25-orange.svg)](index.html)
+[![Live Demo](https://img.shields.io/badge/demo-online-brightgreen.svg)](https://luisfemojica.github.io/xmlshield/)
+[![No Dependencies](https://img.shields.io/badge/dependencies-0-orange.svg)](index.html)
+[![Size](https://img.shields.io/github/size/luisfemojica/xmlshield/index.html.svg)](index.html)
 
 ---
 
