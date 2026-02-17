@@ -242,13 +242,13 @@ Este proyecto mantiene documentación exhaustiva para guiar su desarrollo:
 
 ### 📄 Documentos Principales
 
-- **[SCOPE.md](SCOPE.md)** - ⭐ **Definición de Alcance**
+- **[SCOPE.md](docs/SCOPE.md)** - ⭐ **Definición de Alcance**
   - Qué está dentro y fuera de XMLShield v2.x
   - Límites técnicos estrictos
   - Test de 4 Preguntas para evaluar features
   - Casos de uso cubiertos y no cubiertos
 
-- **[ROADMAP.md](ROADMAP.md)** - 📅 **Plan de Versiones**
+- **[ROADMAP.md](docs/ROADMAP.md)** - 📅 **Plan de Versiones**
   - Timeline detallado (v2.1, v2.2, v2.3)
   - Features planificadas con estimaciones
   - Criterios de éxito por versión
@@ -260,7 +260,7 @@ Este proyecto mantiene documentación exhaustiva para guiar su desarrollo:
   - Templates para Issues y PRs
   - Proceso de contribución
 
-- **[GUIA_DOCUMENTACION.md](GUIA_DOCUMENTACION.md)** - 📚 **Índice de Documentación**
+- **[GUIA_DOCUMENTACION.md](docs/GUIA_DOCUMENTACION.md)** - 📚 **Índice de Documentación**
   - Cómo usar cada documento
   - Escenarios comunes
   - Checklist de contribución
@@ -272,8 +272,8 @@ Este proyecto mantiene documentación exhaustiva para guiar su desarrollo:
 - Descarga `index.html` y úsalo
 
 **Si quieres contribuir:**
-1. Lee [SCOPE.md](SCOPE.md) - Entiende la filosofía
-2. Revisa [ROADMAP.md](ROADMAP.md) - Ve qué está planificado
+1. Lee [SCOPE.md](docs/SCOPE.md) - Entiende la filosofía
+2. Revisa [ROADMAP.md](docs/ROADMAP.md) - Ve qué está planificado
 3. Sigue [CONTRIBUTING.md](CONTRIBUTING.md) - Aprende el proceso
 
 **Si tienes una idea de feature:**
@@ -364,8 +364,8 @@ Este proyecto valora las contribuciones que mantienen su filosofía de simplicid
 ### ¿Cómo Contribuir?
 
 1. **Lee la documentación:**
-   - [SCOPE.md](SCOPE.md) - Entiende qué está en alcance
-   - [ROADMAP.md](ROADMAP.md) - Ve qué está planificado
+   - [SCOPE.md](docs/SCOPE.md) - Entiende qué está en alcance
+   - [ROADMAP.md](docs/ROADMAP.md) - Ve qué está planificado
    - [CONTRIBUTING.md](CONTRIBUTING.md) - Sigue el proceso
 
 2. **Verifica el alcance:**
@@ -493,7 +493,7 @@ XMLShield es gratuito y de código abierto. Si te resulta útil:
 
 ---
 
-**Última actualización:** Febrero 13, 2026  
+**Última actualización:** Febrero 16, 2026  
 **Versión:** 2.0  
 **Autor:** Luis Mojica  
 **Licencia:** Dominio Público  
