@@ -1,0 +1,66 @@
+name: 💡 Propuesta de Feature
+description: Sugiere una mejora para XMLShield
+title: "[FEATURE] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Antes de proponer una feature, por favor:
+        - Lee [SCOPE.md](../blob/main/docs/SCOPE.md) para entender qué está en alcance
+        - Revisa [ROADMAP.md](../blob/main/docs/ROADMAP.md) para ver si ya está planificada
+        - Aplica el Test de 4 Preguntas abajo
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descripción de la Feature
+      description: Qué hace y por qué es útil
+      placeholder: Describe la funcionalidad propuesta
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: test
+    attributes:
+      label: Test de 4 Preguntas
+      description: Tu feature debe pasar mínimo 3 de 4 para ser considerada
+      options:
+        - label: ¿Lo necesita el 80% de los usuarios?
+        - label: ¿Se puede implementar en <200 líneas?
+        - label: ¿Mantiene el archivo auditable?
+        - label: ¿Funciona 100% offline sin setup?
+
+  - type: textarea
+    id: use-cases
+    attributes:
+      label: Casos de Uso
+      description: Quién lo usaría y para qué
+      placeholder: |
+        - Desarrolladores que...
+        - SysAdmins que...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: Complejidad Estimada
+      options:
+        - Baja (< 50 líneas)
+        - Media (50-200 líneas)
+        - Alta (> 200 líneas)
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: Leí SCOPE.md - Esta feature NO está en la lista de rechazadas
+          required: true
+        - label: Revisé ROADMAP.md - Esta feature NO está ya planificada
+          required: true
+        - label: Mi propuesta pasa 3/4 del Test de 4 Preguntas
+          required: true

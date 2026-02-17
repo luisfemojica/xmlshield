@@ -1,0 +1,73 @@
+name: 🐛 Reporte de Bug
+description: Reporta un problema con XMLShield
+title: "[BUG] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias por reportar un bug. Por favor completa la información abajo para ayudarnos a reproducir el problema.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descripción del Bug
+      description: Una descripción clara del problema
+      placeholder: Describe qué está mal
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Pasos para Reproducir
+      description: Paso a paso para reproducir el problema
+      placeholder: |
+        1. Abre XMLShield
+        2. Haz clic en '...'
+        3. Observa el error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamiento Esperado
+      description: Qué debería pasar
+      placeholder: Describe el comportamiento correcto
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Navegador
+      description: Navegador y versión (ej. Chrome 120, Firefox 119)
+      placeholder: Chrome 120.0.6099.109
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Sistema Operativo
+      description: OS y versión (ej. Windows 11, macOS 14)
+      placeholder: Windows 11
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Versión de XMLShield
+      description: Versión del proyecto (ej. 2.0)
+      placeholder: "2.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Información Adicional
+      description: Screenshots, logs de consola, o cualquier detalle adicional
+      placeholder: Pega aquí logs o sube screenshots
