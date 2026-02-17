@@ -98,6 +98,7 @@
   #min { background: var(--green); color: #fff; }
   #copy { background: var(--btn2); color: #fff; }
   #download { background: var(--orange); color: #fff; }
+  #clear { background: #e74c3c; color: #fff; }
   #theme { background: #333; color: #fff; }
   #toggleView { background: var(--purple); color:#fff; }
 
@@ -464,6 +465,7 @@
       <button id="toggleView" title="Ctrl+B">👁️ Vista: Resaltada</button>
       <button id="copy">📋 Copiar</button>
       <button id="download">💾 Descargar</button>
+      <button id="clear" title="Ctrl+L">🧹 Limpiar</button>
       <button id="theme">🌙 Modo oscuro</button>
     </div>
 
@@ -876,6 +878,28 @@
     setTimeout(()=>btn.textContent = label, 1200);
   };
 
+  $("#clear").onclick = () => {
+    inTa.value = "";
+    outTa.value = "";
+    outHtml.innerHTML = "";
+    lastOutputText = "";
+    clearError();
+    updateKPIs("", "");
+    setDisableToggleView(false);
+    if (highlightView) {
+      outHtmlWrap.style.display = "block";
+      outTa.style.display = "none";
+    } else {
+      outHtmlWrap.style.display = "none";
+      outTa.style.display = "block";
+    }
+    const btn = $("#clear");
+    const label = btn.textContent;
+    btn.textContent = "✅ Limpiado!";
+    setTimeout(() => btn.textContent = label, 1200);
+    inTa.focus();
+  };
+
   $("#theme").onclick = () => {
     document.body.classList.toggle("dark");
     const isDark = document.body.classList.contains("dark");
@@ -953,7 +977,8 @@
   document.addEventListener("keydown", e=>{
     if (e.ctrlKey && e.key === "Enter"){ e.preventDefault(); $("#fmt").click(); }
     if (e.ctrlKey && (e.key.toLowerCase() === "m")){ e.preventDefault(); $("#min").click(); }
-    if (e.ctrlKey && (e.key.toLowerCase() === "b")){ e.preventDefault(); $("#toggleView").click(); }
+    if (e.ctrlKey && (e.key.toLowerCase() === "b")){ e.preventDefault(); $("#toggleView").click();}
+    if (e.ctrlKey && (e.key.toLowerCase() === "l")){ e.preventDefault(); $("#clear").click(); }
   });
 
   // Vista por defecto: Resaltada
