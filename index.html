@@ -588,6 +588,7 @@
     const mb = bytes / (1024 * 1024);
     if (bytes > 15 * 1024 * 1024) {
       setViewWithRenderOutput(false);// Forzar vista texto para evitar renderizado pesado en vista resaltada
+      setDisableToggleView(true, "Forzada");
     }
     if (bytes > 50 * 1024 * 1024) {
       const proceed = await confirmLargeFile(mb);
@@ -620,6 +621,17 @@
     $("#toggleView").textContent = (highlightView ? "👁️ Vista: Resaltada" : "👁️ Vista: Texto");
     outHtmlWrap.style.display = highlightView ? "block" : "none";
     outTa.style.display = highlightView ? "none" : "block";
+  }
+
+  function setDisableToggleView(disable, reason=""){
+    const btn = $("#toggleView");
+    btn.disabled = disable;
+    btn.style.opacity = disable ? "0.5" : "1";
+    if (disable) {
+      btn.textContent = `👁️ Vista: Texto (${reason})`;
+    } else {
+      btn.textContent = highlightView ? "👁️ Vista: Resaltada" : "👁️ Vista: Texto";
+    }
   }
 
   function renderOutput(text){
@@ -778,6 +790,7 @@
   // --- Eventos UI ---
   $("#fmt").onclick = async () => {
     clearError();
+    setDisableToggleView(false); // Habilitar toggle view al formatear (si estaba deshabilitado por tamaño)
     const input = inTa.value;
     if (!input.trim()) { showError("⚠️ No hay XML para formatear."); return; }
 
@@ -804,6 +817,7 @@
 
   $("#min").onclick = async () => {
     clearError();
+    setDisableToggleView(false); // Habilitar toggle view al formatear (si estaba deshabilitado por tamaño)
     const input = inTa.value;
     if (!input.trim()) { showError("⚠️ No hay XML para minificar."); return; }
 
@@ -874,6 +888,7 @@
     if(sizeCheck === "toolarge") {
       showError("⚠️ El archivo es demasiado grande para la vista resaltada. Se mantendrá en vista texto.");
       setViewWithRenderOutput(false);
+      setDisableToggleView(true, "Forzada");
       return;
     }
     const mb = (new Blob([input]).size / (1024 * 1024)).toFixed(1);
@@ -915,12 +930,13 @@
       // 2. Leer el archivo (async — el loading ya es visible)
       const txt = await f.text();
 
-      // 3. Verificar tamaño — puede mostrar el modal de confirmación
-      /*const sizeCheck = await checkFileSize(txt);
-      if (sizeCheck === false) {
-        showError("⚠️ Operación cancelada.");
-        return;
-      }*/
+      // 3. Verificar tamaño
+      const sizeCheck = await checkFileSizeWithOutConfirm(txt);
+      if(sizeCheck === "toolarge") {
+        showError("⚠️ El archivo es demasiado grande para la vista resaltada. Se mantendrá en vista texto.");
+        setViewWithRenderOutput(false);
+        setDisableToggleView(true, "Forzada");
+      }
 
       // 4. Cargar en el editor
       inTa.value = txt;
