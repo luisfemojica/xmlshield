@@ -43,6 +43,13 @@ XMLShield es una herramienta de formateo y minificación de XML que funciona com
 
 ## 📖 Inicio Rápido
 
+## 📸 Vista Previa
+
+<div align="center">
+  <img src="docs/screenshot.png" alt="XMLShield Screenshot" width="800">
+  <p><em>XMLShield formateando XML con resaltado de sintaxis en modo oscuro</em></p>
+</div>
+
 ### Método 1: Uso Directo (Recomendado)
 1. Descarga `index.html`
 2. Abre con doble clic (no requiere servidor web)
