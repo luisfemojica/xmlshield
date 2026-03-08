@@ -1,9 +1,9 @@
 # 🗺️ XMLShield - Roadmap
 ## Plan de Versiones 2026-2027
 
-> **Documento vivo** - Se actualiza cada release  
-> **Última revisión:** Febrero 2026  
-> **Versión actual:** v2.0
+> **Documento vivo** - Se actualiza cada release
+> **Última revisión:** Marzo 2026
+> **Versión actual:** v2.1
 
 ---
 
@@ -32,9 +32,9 @@
 
 ## 🎯 Versiones Futuras
 
-### v2.1 - "Quick Wins" 🚧 EN PLANIFICACIÓN
-**Fecha estimada:** Marzo-Abril 2026  
-**Esfuerzo:** 1-2 semanas  
+### v2.1 - "Quick Wins" 🔨 EN PROGRESO
+**Fecha estimada:** Marzo-Abril 2026
+**Esfuerzo:** 1-2 semanas
 **Prioridad:** Alta
 
 #### Objetivos
@@ -42,10 +42,11 @@ Mejoras rápidas que añaden valor inmediato sin aumentar complejidad significat
 
 #### Features Planificadas
 
-##### 1. Errores Detallados con Número de Línea
-**Complejidad:** Baja | **Líneas:** ~30 | **Tiempo:** 2-3 días
+##### 1. Errores Detallados con Número de Línea ✅ IMPLEMENTADO
+**Complejidad:** Baja | **Líneas:** ~15 | **Tiempo:** 2-3 días
 
 **Valor:** Debugging más rápido, especialmente para XMLs complejos.
+**Implementación:** `parseXMLError()` extrae línea y columna del `parsererror` nativo del `DOMParser`. Compatible Chrome, Firefox, Safari y Edge.
 
 ##### 2. Estadísticas del Documento
 **Complejidad:** Baja | **Líneas:** ~40 | **Tiempo:** 2-3 días
@@ -64,11 +65,12 @@ Mejoras rápidas que añaden valor inmediato sin aumentar complejidad significat
 - Highlight de línea actual
 - Compatible con modo oscuro
 
-##### 4. Undo/Redo Básico
-**Complejidad:** Media | **Líneas:** ~60 | **Tiempo:** 3-5 días
+##### 4. Undo/Redo Básico ✅ IMPLEMENTADO
+**Complejidad:** Media | **Líneas:** ~30 | **Tiempo:** 3-5 días
 
-**Atajos:** Ctrl+Z (undo), Ctrl+Y (redo)  
+**Atajos:** Ctrl+Z (undo), Ctrl+Y (redo)
 **Limitación:** Solo en memoria de sesión (no persiste al recargar)
+**Implementación:** Stack doble (`undoStack`/`redoStack`) que guarda el estado del editor antes de cada operación destructiva (Limpiar, arrastrar archivo). Ctrl+Z/Y activos cuando el foco está fuera del textarea para no interferir con el undo nativo del navegador.
 
 ##### 5. Advertencia para Archivos Grandes
 **Complejidad:** Muy Baja | **Líneas:** ~15 | **Tiempo:** 1 día
@@ -202,7 +204,10 @@ xmlshield.html?preset=readable
 ## ✅ Criterios de Éxito por Versión
 
 ### v2.1 Success Criteria
-- [ ] 5+ mejoras de calidad de vida implementadas
+- [x] Errores XML con línea y columna
+- [x] Undo/Redo básico (Ctrl+Z / Ctrl+Y)
+- [ ] Estadísticas del documento
+- [ ] Líneas numeradas en editores
 - [ ] Cero regresiones en funcionalidad existente
 - [ ] Tiempo de procesamiento <2s para XMLs de 1MB
 
@@ -234,7 +239,7 @@ xmlshield.html?preset=readable
 | Versión | Progreso | Features | Líneas | Tamaño | Estado |
 |---------|----------|----------|--------|--------|--------|
 | v2.0 | 100% | 10/10 | ~500 | ~50KB | ✅ Released |
-| v2.1 | 0% | 0/5 | - | - | 📋 Planning |
+| v2.1 | 40% | 2/5 | ~1000 | ~60KB | 🔨 En progreso |
 | v2.2 | 0% | 0/4 | - | - | 📅 Scheduled |
 | v2.3 | 0% | 0/3 | - | - | 🔮 Future |
 

@@ -197,13 +197,13 @@ Toda nueva feature debe pasar **mínimo 3 de 4** preguntas:
 
 Refactorización completa con diseño moderno, panel dividido, gradientes, modo oscuro mejorado, KPIs con emojis, y descarga de archivos.
 
-### v2.1 - "Quick Wins" 🚧 PRÓXIMO
+### v2.1 - "Quick Wins" 🔨 EN PROGRESO
 **Fecha estimada:** Marzo-Abril 2026
 
-- ✅ Errores detallados con número de línea
-- ✅ Estadísticas del documento (elementos, profundidad, atributos)
-- ✅ Líneas numeradas en editores
-- ✅ Undo/Redo básico (memoria de sesión)
+- ✅ Errores detallados con número de línea ← **Implementado**
+- ✅ Undo/Redo básico (memoria de sesión) ← **Implementado**
+- 🔲 Estadísticas del documento (elementos, profundidad, atributos)
+- 🔲 Líneas numeradas en editores
 - ✅ Advertencia para archivos grandes (>50MB)
 
 **Impacto:** +100-150 líneas | ~60KB total
@@ -335,7 +335,11 @@ Para features más avanzadas, considera XMLShield Extended (v3.0+) o herramienta
 
 ## 📝 Changelog
 
-### v2.0 - Febrero 2026 (Actual)
+### v2.1 - Marzo 2026 (En progreso)
+- ✅ Errores XML con número de línea y columna exactos
+- ✅ Undo/Redo básico con Ctrl+Z / Ctrl+Y (memoria de sesión)
+
+### v2.0 - Febrero 2026
 - ✅ Refactorización completa del diseño
 - ✅ Panel dividido lado a lado
 - ✅ Gradientes modernos en header
@@ -493,8 +497,8 @@ XMLShield es gratuito y de código abierto. Si te resulta útil:
 
 ---
 
-**Última actualización:** Febrero 16, 2026  
-**Versión:** 2.0  
+**Última actualización:** Marzo 2026
+**Versión:** 2.1 (en progreso)
 **Autor:** Luis Mojica  
 **Licencia:** Dominio Público  
 
