@@ -213,19 +213,19 @@ Refactorización completa con diseño moderno, panel dividido, gradientes, modo 
 ### v2.2 - "Productivity Boost" 📅 Q2-Q3 2026
 **Fecha estimada:** Mayo-Julio 2026
 
-- ✅ Conversión XML ↔ JSON
-- ✅ Búsqueda mejorada con highlight
-- ✅ Presets de configuración vía URL
-- ✅ Copiar como string escapado (JS, Python, Java)
+- 🔲 Conversión XML ↔ JSON
+- 🔲 Búsqueda mejorada con highlight
+- 🔲 Presets de configuración vía URL
+- 🔲 Copiar como string escapado (JS, Python, Java)
 
 **Impacto:** +150-250 líneas | ~75-80KB total
 
 ### v2.3 - "Navigation & UX" 📅 Q4 2026
 **Fecha estimada:** Octubre-Diciembre 2026
 
-- ✅ Vista de árbol colapsable (solo lectura)
-- ✅ Ir a línea específica (Ctrl+G)
-- ✅ Temas visuales adicionales (High Contrast, Solarized, Monokai)
+- 🔲 Vista de árbol colapsable (solo lectura)
+- 🔲 Ir a línea específica (Ctrl+G)
+- 🔲 Temas visuales adicionales (High Contrast, Solarized, Monokai)
 
 **Impacto:** +200-300 líneas | ~95-100KB total (límite máximo v2.x)
 
