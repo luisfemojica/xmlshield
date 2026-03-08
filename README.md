@@ -88,6 +88,8 @@ XMLShield es una herramienta de formateo y minificación de XML que funciona com
 | `Ctrl + Enter` | Formatear XML |
 | `Ctrl + M` | Minificar XML |
 | `Ctrl + B` | Cambiar vista (Texto/Resaltada) |
+| `Ctrl + Z` | Deshacer (fuera del editor) |
+| `Ctrl + Y` | Rehacer (fuera del editor) |
 
 ---
 
