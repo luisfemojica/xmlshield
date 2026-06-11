@@ -22,6 +22,7 @@
     --bg:#f4f4f4; --fg:#222; --panel:#fff; --border:#ccc; --btn:#0078ff; --btn2:#555; --err:#b00;
     --panel-dark:#1e1e1e; --bg-dark:#121212; --fg-dark:#ddd; --border-dark:#444;
     --green:#0aa15b; --purple:#6c30c8; --orange:#ff8c00; --blue:#667eea;
+    --syn-tag:#569CD6; --syn-attr:#9CDCFE; --syn-value:#CE9178; --syn-comment:#6A9955; --syn-symbol:#D4D4D4;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -99,8 +100,20 @@
   #copy { background: var(--btn2); color: #fff; }
   #download { background: var(--orange); color: #fff; }
   #clear { background: #e74c3c; color: #fff; }
-  #theme { background: #333; color: #fff; }
+  #conv { background: #14919b; color: #fff; }
   #toggleView { background: var(--purple); color:#fff; }
+
+  .controls select {
+    padding: 0.55rem 0.6rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  .controls select option { color: #222; }
 
   .options-row {
     display: flex;
@@ -144,6 +157,7 @@
   .kpi-row {
     display: flex;
     gap: 1rem;
+    flex-wrap: wrap;
     font-size: 0.9rem;
     color: rgba(255,255,255,0.9);
   }
@@ -388,11 +402,11 @@
 
   /* Resaltado de sintaxis XML */
   .syntax { white-space: pre; }
-  .syntax .tag     { color: #569CD6; }
-  .syntax .attr    { color: #9CDCFE; }
-  .syntax .value   { color: #CE9178; }
-  .syntax .comment { color: #6A9955; }
-  .syntax .symbol  { color: #D4D4D4; }
+  .syntax .tag,  .tree .tag     { color: var(--syn-tag); }
+  .syntax .attr, .tree .attr    { color: var(--syn-attr); }
+  .syntax .value,.tree .value   { color: var(--syn-value); }
+  .syntax .comment { color: var(--syn-comment); }
+  .syntax .symbol  { color: var(--syn-symbol); }
   body.dark .syntax .symbol { color: #BBBBBB; }
 
   @media (max-width: 968px) {
@@ -452,6 +466,94 @@
     min-width: 100%;
     width: max-content;
   }
+
+  /* ============================================================
+     LÍNEAS NUMERADAS (gutter sincronizado con scroll)
+  ============================================================ */
+  .editor-wrap {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    min-height: 0;
+  }
+  .gutter {
+    flex: none;
+    min-width: 3.2ch;
+    padding: 1rem 0.5rem 2.5rem;
+    font: 14px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    line-height: 1.6;
+    text-align: right;
+    color: #999;
+    background: rgba(127,127,127,0.08);
+    border-right: 1px solid var(--border);
+    overflow: hidden;
+    user-select: none;
+    white-space: pre;
+  }
+  body.dark .gutter { border-right-color: var(--border-dark); }
+
+  /* ============================================================
+     VISTA DE ÁRBOL COLAPSABLE (solo lectura)
+  ============================================================ */
+  #outTree { background: #fafafa; color: var(--fg); }
+  body.dark #outTree { background: #0d0d0d; color: var(--fg-dark); }
+  .tree { white-space: normal; }
+  .tree details { padding-left: 1.2rem; }
+  .tree summary { cursor: pointer; }
+  .tree summary:hover { background: rgba(127,127,127,0.12); }
+  .tree .tree-leaf { padding-left: 2.2rem; }
+  .tree .txt { color: var(--syn-value); }
+
+  /* ============================================================
+     BÚSQUEDA CON HIGHLIGHT
+  ============================================================ */
+  .search-box input {
+    padding: 0.35rem 0.6rem;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    width: 170px;
+  }
+  .search-box input::placeholder { color: rgba(255,255,255,0.6); }
+  .options-row button.search-nav {
+    padding: 0.3rem 0.55rem;
+    font-size: 0.8rem;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.25);
+  }
+  #searchCount { color: rgba(255,255,255,0.85); font-size: 0.85rem; }
+  mark.search-hit { background: #ffd54f; color: #222; border-radius: 2px; }
+  mark.search-hit.current { background: var(--orange); color: #fff; outline: 2px solid #ff5722; }
+
+  /* ============================================================
+     TEMAS ADICIONALES (High Contrast, Solarized, Monokai)
+     Cada tema solo define variables; las reglas compartidas
+     de abajo las aplican. Van al final para ganar en cascada.
+  ============================================================ */
+  body.theme-hc {
+    --t-bg:#000; --t-panel:#000; --t-out:#000; --t-fg:#fff; --t-border:#fff; --t-head:#000;
+    --syn-tag:#ffff00; --syn-attr:#00ffff; --syn-value:#00ff64; --syn-comment:#bbb; --syn-symbol:#fff;
+  }
+  body.theme-solarized {
+    --t-bg:#eee8d5; --t-panel:#fdf6e3; --t-out:#fdf6e3; --t-fg:#657b83; --t-border:#93a1a1; --t-head:#586e75;
+    --syn-tag:#268bd2; --syn-attr:#b58900; --syn-value:#2aa198; --syn-comment:#93a1a1; --syn-symbol:#657b83;
+  }
+  body.theme-monokai {
+    --t-bg:#1e1f1c; --t-panel:#272822; --t-out:#272822; --t-fg:#f8f8f2; --t-border:#49483e; --t-head:#1e1f1c;
+    --syn-tag:#f92672; --syn-attr:#a6e22e; --syn-value:#e6db74; --syn-comment:#75715e; --syn-symbol:#f8f8f2;
+  }
+  body[class*="theme-"] .container { background: var(--t-bg); }
+  body[class*="theme-"] .panel,
+  body[class*="theme-"] #in { background: var(--t-panel); color: var(--t-fg); }
+  body[class*="theme-"] #out,
+  body[class*="theme-"] #outHtml,
+  body[class*="theme-"] #outTree { background: var(--t-out); color: var(--t-fg); }
+  body[class*="theme-"] .panel { border-right-color: var(--t-border); }
+  body[class*="theme-"] .panel-header { background: var(--t-head); border-bottom-color: var(--t-border); }
+  body[class*="theme-"] .gutter { border-right-color: var(--t-border); }
+  body[class*="theme-"] .syntax .symbol { color: var(--syn-symbol); }
 </style>
 </head>
 <body>
@@ -462,11 +564,24 @@
     <div class="controls">
       <button id="fmt" title="Ctrl+Enter">✨ Formatear</button>
       <button id="min" title="Ctrl+M">📦 Minificar</button>
-      <button id="toggleView" title="Ctrl+B">👁️ Vista: Resaltada</button>
+      <button id="conv" title="Detecta la entrada: XML→JSON o JSON→XML">🔁 XML ⇄ JSON</button>
+      <button id="toggleView" title="Ctrl+B — alterna Resaltada / Texto / Árbol">👁️ Vista: Resaltada</button>
       <button id="copy">📋 Copiar</button>
+      <select id="copyAs" title="Formato al copiar la salida">
+        <option value="plain">como texto</option>
+        <option value="js">string JS</option>
+        <option value="python">string Python</option>
+        <option value="java">string Java</option>
+      </select>
       <button id="download">💾 Descargar</button>
       <button id="clear" title="Ctrl+L">🧹 Limpiar</button>
-      <button id="theme">🌙 Modo oscuro</button>
+      <select id="themeSel" title="Tema visual">
+        <option value="claro">🌞 Claro</option>
+        <option value="oscuro">🌙 Oscuro</option>
+        <option value="hc">⬛ Alto contraste</option>
+        <option value="solarized">🌅 Solarized</option>
+        <option value="monokai">🎨 Monokai</option>
+      </select>
     </div>
 
     <div class="options-row">
@@ -484,6 +599,15 @@
       <label title="Quita espacios redundantes en los atributos, sin tocar el texto entre comillas">
         <input id="compactAttrs" type="checkbox" checked> Compactar atributos
       </label>
+      <span class="sep">|</span>
+      <label class="search-box">🔍
+        <input id="search" type="search" placeholder="Buscar en salida...">
+      </label>
+      <button class="search-nav" id="searchPrev" title="Coincidencia anterior">▲</button>
+      <button class="search-nav" id="searchNext" title="Coincidencia siguiente">▼</button>
+      <span id="searchCount"></span>
+      <span class="sep">|</span>
+      <button class="search-nav" id="shareCfg" title="Copia un enlace con la configuración actual (sangría, tema, vista...)">🔗 Copiar config</button>
     </div>
 
     <div class="kpi-row">
@@ -492,6 +616,12 @@
       <span>📤 Salida: <strong class="kpi" id="outSize">0</strong> bytes</span>
       <span class="sep">•</span>
       <span>💰 Ahorro: <strong class="kpi" id="savings">0%</strong></span>
+      <span class="sep">•</span>
+      <span>🧩 Elementos: <strong class="kpi" id="statElems">–</strong></span>
+      <span class="sep">•</span>
+      <span>🏷️ Atributos: <strong class="kpi" id="statAttrs">–</strong></span>
+      <span class="sep">•</span>
+      <span>📏 Profundidad: <strong class="kpi" id="statDepth">–</strong></span>
     </div>
 
     <div id="err"></div>
@@ -500,13 +630,20 @@
   <div class="workspace">
     <div class="panel">
       <div class="panel-header">📝 Entrada XML (arrastra archivo o pega texto)</div>
-      <textarea id="in" placeholder="Pega aquí tu XML o arrastra un archivo .xml..."></textarea>
+      <div class="editor-wrap">
+        <div class="gutter" id="gutterIn">1</div>
+        <textarea id="in" wrap="off" placeholder="Pega aquí tu XML o arrastra un archivo .xml..."></textarea>
+      </div>
     </div>
 
     <div class="panel">
       <div class="panel-header">✅ Salida Formateada</div>
-      <textarea id="out" class="viewer" placeholder="El resultado aparecerá aquí..."></textarea>
-      <div id="outHtml" class="viewer" style="display:none;"><div class="syntax"></div></div>
+      <div class="editor-wrap">
+        <div class="gutter" id="gutterOut">1</div>
+        <textarea id="out" class="viewer" wrap="off" placeholder="El resultado aparecerá aquí..."></textarea>
+        <div id="outHtml" class="viewer" style="display:none;"><div class="syntax"></div></div>
+        <div id="outTree" class="viewer tree" style="display:none;"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -541,8 +678,12 @@
 (function(){
   const $ = s => document.querySelector(s);
   const inTa = $("#in"), outTa = $("#out"), outHtmlWrap = $("#outHtml"), outHtml = $("#outHtml .syntax");
+  const outTree = $("#outTree"), gutterIn = $("#gutterIn"), gutterOut = $("#gutterOut");
 
-  let highlightView = true;
+  // Modos de vista de la salida: resaltada, texto plano, árbol colapsable
+  const VIEW_LABEL = { hl: "Resaltada", txt: "Texto", tree: "Árbol" };
+  const VIEW_ORDER = ["hl", "txt", "tree"];
+  let viewMode = "hl";
   let lastOutputText = "";
 
   // --- Utilidades ---
@@ -554,7 +695,7 @@
     const save = i ? Math.max(0, Math.round((1 - o / i) * 100)) : 0;
     $("#savings").textContent = isFinite(save) ? `${save}%` : "0%";
   }
-  function showError(msg){ $("#err").textContent = msg || ""; console.error(msg); }
+  function showError(msg){ $("#err").textContent = msg || ""; if (msg) console.error(msg); }
   function clearError(){ showError(""); }
 
   // --- Error XML con línea/columna ---
@@ -579,12 +720,14 @@
     redoStack.push(inTa.value);
     inTa.value = undoStack.pop();
     updateKPIs(inTa.value, lastOutputText);
+    updateGutter(gutterIn, inTa.value);
   }
   function applyRedo() {
     if (!redoStack.length) return;
     undoStack.push(inTa.value);
     inTa.value = redoStack.pop();
     updateKPIs(inTa.value, lastOutputText);
+    updateGutter(gutterIn, inTa.value);
   }
 
   // --- Loading overlay ---
@@ -619,7 +762,7 @@
     const bytes = new Blob([text]).size;
     const mb = bytes / (1024 * 1024);
     if (bytes > 15 * 1024 * 1024) {
-      setViewWithRenderOutput(false);// Forzar vista texto para evitar renderizado pesado en vista resaltada
+      setViewNoRender("txt");// Forzar vista texto para evitar renderizado pesado en vista resaltada
       setDisableToggleView(true, "Forzada");
     }
     if (bytes > 50 * 1024 * 1024) {
@@ -640,19 +783,18 @@
     return true;
   }
 
-  function setView(highlight){
-    highlightView = highlight;
-    $("#toggleView").textContent = (highlightView ? "👁️ Vista: Resaltada" : "👁️ Vista: Texto");
-    outHtmlWrap.style.display = highlightView ? "block" : "none";
-    outTa.style.display       = highlightView ? "none"  : "block";
-    renderOutput(lastOutputText);
+  // Cambia el modo de vista sin re-renderizar la salida (para forzados por tamaño)
+  function setViewNoRender(mode){
+    viewMode = mode;
+    $("#toggleView").textContent = `👁️ Vista: ${VIEW_LABEL[mode]}`;
+    outHtmlWrap.style.display = mode === "hl"   ? "block" : "none";
+    outTa.style.display       = mode === "txt"  ? "block" : "none";
+    outTree.style.display     = mode === "tree" ? "block" : "none";
   }
 
-  function setViewWithRenderOutput(highlight) {
-    highlightView = highlight;
-    $("#toggleView").textContent = (highlightView ? "👁️ Vista: Resaltada" : "👁️ Vista: Texto");
-    outHtmlWrap.style.display = highlightView ? "block" : "none";
-    outTa.style.display = highlightView ? "none" : "block";
+  function setView(mode){
+    setViewNoRender(mode);
+    renderOutput(lastOutputText);
   }
 
   function setDisableToggleView(disable, reason=""){
@@ -662,17 +804,21 @@
     if (disable) {
       btn.textContent = `👁️ Vista: Texto (${reason})`;
     } else {
-      btn.textContent = highlightView ? "👁️ Vista: Resaltada" : "👁️ Vista: Texto";
+      btn.textContent = `👁️ Vista: ${VIEW_LABEL[viewMode]}`;
     }
   }
 
   function renderOutput(text){
     lastOutputText = text || "";
-    if (highlightView) {
+    if (viewMode === "hl") {
       outHtml.innerHTML = highlightXML(lastOutputText);
+    } else if (viewMode === "tree") {
+      outTree.innerHTML = buildTreeHTML(lastOutputText);
     } else {
       outTa.value = lastOutputText;
     }
+    applySearch();
+    updateGutter(gutterOut, lastOutputText, viewMode === "tree");
     updateKPIs(inTa.value, lastOutputText);
   }
 
@@ -682,6 +828,7 @@
     const doc = parser.parseFromString(xml, "application/xml");
     const err = doc.querySelector("parsererror");
     if (err) throw new Error(parseXMLError(doc));
+    collectStats(doc);
 
     let output = "";
     function walk(node, level) {
@@ -764,6 +911,7 @@
     const doc = parser.parseFromString(xml, "application/xml");
     const err = doc.querySelector("parsererror");
     if (err) throw new Error(parseXMLError(doc));
+    collectStats(doc);
 
     if (!opts.keepTextWS) normalizeTextNodesRec(doc);
 
@@ -817,6 +965,237 @@
       '<span class="attr">$1</span>=<span class="value">"$2"</span>'
     );
     return h;
+  }
+
+  // --- Estadísticas del documento (elementos, atributos, profundidad) ---
+  function collectStats(doc){
+    let elems = 0, attrs = 0, depth = 0;
+    (function walk(node, d){
+      elems++;
+      attrs += node.attributes.length;
+      if (d > depth) depth = d;
+      for (let ch = node.firstElementChild; ch; ch = ch.nextElementSibling) walk(ch, d + 1);
+    })(doc.documentElement, 1);
+    $("#statElems").textContent = elems;
+    $("#statAttrs").textContent = attrs;
+    $("#statDepth").textContent = depth;
+  }
+  function resetStats(){
+    ["#statElems", "#statAttrs", "#statDepth"].forEach(s => $(s).textContent = "–");
+  }
+
+  // --- Líneas numeradas (gutter sincronizado con scroll) ---
+  const gutterLines = new WeakMap();
+  function updateGutter(gutter, text, hide = false){
+    const lines = text ? text.split("\n").length : 1;
+    // Más de 30.000 líneas: se oculta el gutter para no degradar rendimiento
+    if (hide || lines > 30000) { gutter.style.display = "none"; return; }
+    gutter.style.display = "block";
+    if (gutterLines.get(gutter) === lines) return;
+    gutterLines.set(gutter, lines);
+    let s = "";
+    for (let i = 1; i <= lines; i++) s += i + "\n";
+    gutter.textContent = s;
+  }
+  function syncGutter(scroller, gutter){
+    scroller.addEventListener("scroll", () => { gutter.scrollTop = scroller.scrollTop; });
+  }
+  syncGutter(inTa, gutterIn);
+  syncGutter(outTa, gutterOut);
+  syncGutter(outHtmlWrap, gutterOut);
+
+  // --- Conversión XML ⇄ JSON ---
+  // Convención: atributos como "@nombre", texto mixto como "#text",
+  // elementos repetidos se agrupan en arrays.
+  function escapeXML(s){
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+  function xmlNodeToObj(node){
+    const obj = {};
+    for (const a of node.attributes) obj["@" + a.name] = a.value;
+    let text = "";
+    for (const ch of node.childNodes){
+      if (ch.nodeType === Node.TEXT_NODE || ch.nodeType === Node.CDATA_SECTION_NODE) text += ch.nodeValue;
+      if (ch.nodeType === Node.ELEMENT_NODE){
+        const val = xmlNodeToObj(ch), key = ch.nodeName;
+        if (key in obj){
+          if (!Array.isArray(obj[key])) obj[key] = [obj[key]];
+          obj[key].push(val);
+        } else obj[key] = val;
+      }
+    }
+    text = text.replace(/\s+/g, " ").trim();
+    if (!Object.keys(obj).length) return text;
+    if (text) obj["#text"] = text;
+    return obj;
+  }
+  function xmlToJson(xml){
+    const doc = new DOMParser().parseFromString(xml, "application/xml");
+    if (doc.querySelector("parsererror")) throw new Error(parseXMLError(doc));
+    collectStats(doc);
+    const root = doc.documentElement;
+    const ind = $("#tabs").checked ? "\t" : (+$("#indent").value || 2);
+    return JSON.stringify({ [root.nodeName]: xmlNodeToObj(root) }, null, ind);
+  }
+  function jsonValueToXml(key, val, ind, level){
+    const pad = ind.repeat(level);
+    if (Array.isArray(val)) return val.map(v => jsonValueToXml(key, v, ind, level)).join("");
+    if (val === null || typeof val !== "object")
+      return `${pad}<${key}>${escapeXML(val === null ? "" : val)}</${key}>\n`;
+    let attrs = "", children = "", text = "";
+    for (const [k, v] of Object.entries(val)){
+      if (k.startsWith("@")) attrs += ` ${k.slice(1)}="${escapeXML(v)}"`;
+      else if (k === "#text") text = escapeXML(v);
+      else children += jsonValueToXml(k, v, ind, level + 1);
+    }
+    if (!children) return `${pad}<${key}${attrs}>${text}</${key}>\n`;
+    return `${pad}<${key}${attrs}>\n${text ? ind.repeat(level + 1) + text + "\n" : ""}${children}${pad}</${key}>\n`;
+  }
+  function jsonToXml(json){
+    let data;
+    try { data = JSON.parse(json); }
+    catch(e){ throw new Error("❌ JSON inválido: " + e.message); }
+    const ind = $("#tabs").checked ? "\t" : " ".repeat(+$("#indent").value || 2);
+    const keys = (data && typeof data === "object" && !Array.isArray(data)) ? Object.keys(data) : null;
+    const xml = (keys && keys.length === 1 && /^[A-Za-z_][\w:\-.]*$/.test(keys[0]))
+      ? jsonValueToXml(keys[0], data[keys[0]], ind, 0)
+      : jsonValueToXml("root", data, ind, 0);
+    return xml.trimEnd();
+  }
+
+  // --- Vista de árbol colapsable (solo lectura, con <details> nativo) ---
+  function treeNodeHTML(el){
+    let attrs = "";
+    for (const a of el.attributes)
+      attrs += ` <span class="attr">${escapeHTML(a.name)}</span>=<span class="value">"${escapeHTML(a.value)}"</span>`;
+    const name = `<span class="tag">${escapeHTML(el.nodeName)}</span>`;
+    let text = "";
+    for (const ch of el.childNodes)
+      if (ch.nodeType === Node.TEXT_NODE || ch.nodeType === Node.CDATA_SECTION_NODE) text += ch.nodeValue;
+    text = text.replace(/\s+/g, " ").trim();
+    const textHTML = text ? ` <span class="txt">${escapeHTML(text)}</span>` : "";
+    if (!el.children.length)
+      return `<div class="tree-leaf">&lt;${name}${attrs}&gt;${textHTML}</div>`;
+    let kids = "";
+    for (const ch of el.children) kids += treeNodeHTML(ch);
+    return `<details open><summary>&lt;${name}${attrs}&gt;${textHTML}</summary>${kids}</details>`;
+  }
+  function buildTreeHTML(xml){
+    if (!xml.trim()) return "";
+    const doc = new DOMParser().parseFromString(xml, "application/xml");
+    if (doc.querySelector("parsererror"))
+      return `<div class="tree-leaf">⚠️ La salida actual no es XML válido — formatea primero para ver el árbol.</div>`;
+    return treeNodeHTML(doc.documentElement);
+  }
+
+  // --- Búsqueda con highlight en la salida (máx. 500 marcas) ---
+  let searchHits = [], searchIdx = -1;
+  function clearSearchMarks(){
+    searchHits = []; searchIdx = -1;
+    outHtml.querySelectorAll("mark.search-hit").forEach(m => m.replaceWith(document.createTextNode(m.textContent)));
+  }
+  function applySearch(){
+    const term = $("#search").value;
+    clearSearchMarks();
+    const countEl = $("#searchCount");
+    if (!term || !lastOutputText){ countEl.textContent = ""; return; }
+    if (viewMode !== "hl"){
+      // En vista Texto/Árbol solo se cuenta; el resaltado vive en la vista Resaltada
+      let n = 0, pos = 0;
+      const lower = lastOutputText.toLowerCase(), t = term.toLowerCase();
+      while ((pos = lower.indexOf(t, pos)) !== -1 && n < 1000){ n++; pos += t.length; }
+      countEl.textContent = `${n}${n >= 1000 ? "+" : ""} coincidencias`;
+      return;
+    }
+    const t = term.toLowerCase();
+    const walker = document.createTreeWalker(outHtml, NodeFilter.SHOW_TEXT);
+    const textNodes = [];
+    let node;
+    while ((node = walker.nextNode())) textNodes.push(node);
+    for (const tn of textNodes){
+      if (searchHits.length >= 500) break;
+      const val = tn.nodeValue;
+      const lower = val.toLowerCase();
+      let idx = lower.indexOf(t);
+      if (idx === -1) continue;
+      const frag = document.createDocumentFragment();
+      let last = 0;
+      while (idx !== -1 && searchHits.length < 500){
+        frag.appendChild(document.createTextNode(val.slice(last, idx)));
+        const mark = document.createElement("mark");
+        mark.className = "search-hit";
+        mark.textContent = val.slice(idx, idx + term.length);
+        frag.appendChild(mark);
+        searchHits.push(mark);
+        last = idx + term.length;
+        idx = lower.indexOf(t, last);
+      }
+      frag.appendChild(document.createTextNode(val.slice(last)));
+      tn.replaceWith(frag);
+    }
+    countEl.textContent = searchHits.length
+      ? `${searchHits.length}${searchHits.length >= 500 ? "+" : ""} coincidencias`
+      : "0 coincidencias";
+    if (searchHits.length) gotoHit(0);
+  }
+  function gotoHit(i){
+    if (!searchHits.length) return;
+    if (searchIdx >= 0 && searchHits[searchIdx]) searchHits[searchIdx].classList.remove("current");
+    searchIdx = (i + searchHits.length) % searchHits.length;
+    const m = searchHits[searchIdx];
+    m.classList.add("current");
+    m.scrollIntoView({ block: "center", inline: "nearest" });
+    $("#searchCount").textContent = `${searchIdx + 1}/${searchHits.length} coincidencias`;
+  }
+
+  // --- Copiar como string escapado (JS, Python, Java) ---
+  function asEscapedString(text, lang){
+    if (lang === "js" || lang === "python") return JSON.stringify(text);
+    if (lang === "java")
+      return text.split("\n")
+        .map((l, i, arr) => JSON.stringify(l + (i < arr.length - 1 ? "\n" : "")))
+        .join(" +\n");
+    return text;
+  }
+
+  // --- Temas visuales ---
+  const THEMES = { claro: "", oscuro: "dark", hc: "dark theme-hc", solarized: "theme-solarized", monokai: "dark theme-monokai" };
+  function applyTheme(name){
+    if (!(name in THEMES)) name = "claro";
+    document.body.className = THEMES[name];
+    $("#themeSel").value = name;
+  }
+
+  // --- Presets de configuración vía URL ---
+  // Ej.: ?indent=4&tabs=0&preserve=1&keepws=1&compact=1&theme=monokai&view=arbol
+  function applyURLPreset(){
+    const p = new URLSearchParams(location.search);
+    if (p.has("indent"))   $("#indent").value = Math.min(16, Math.max(0, +p.get("indent") || 0));
+    if (p.has("tabs"))     $("#tabs").checked = p.get("tabs") === "1";
+    if (p.has("preserve")) $("#preserve").checked = p.get("preserve") === "1";
+    if (p.has("keepws"))   $("#keepTextWS").checked = p.get("keepws") === "1";
+    if (p.has("compact"))  $("#compactAttrs").checked = p.get("compact") === "1";
+    if (p.has("theme"))    applyTheme(p.get("theme"));
+    const v = p.get("view");
+    if (v === "texto") viewMode = "txt";
+    else if (v === "arbol") viewMode = "tree";
+  }
+
+  // --- Ir a línea específica (Ctrl+G) ---
+  function gotoLine(){
+    const raw = prompt("Ir a línea:");
+    if (raw === null) return;
+    const n = parseInt(raw, 10);
+    if (!n || n < 1){ showError("⚠️ Número de línea inválido."); return; }
+    const lines = inTa.value.split("\n");
+    if (n > lines.length){ showError(`⚠️ La entrada solo tiene ${lines.length} línea(s).`); return; }
+    clearError();
+    let pos = 0;
+    for (let i = 0; i < n - 1; i++) pos += lines[i].length + 1;
+    inTa.focus();
+    inTa.setSelectionRange(pos, pos + lines[n - 1].length);
+    const lineHeight = parseFloat(getComputedStyle(inTa).lineHeight) || 22.4;
+    inTa.scrollTop = Math.max(0, (n - 3) * lineHeight);
   }
 
   // --- Eventos UI ---
@@ -874,9 +1253,36 @@
     }, 80);
   };
 
+  $("#conv").onclick = async () => {
+    clearError();
+    setDisableToggleView(false);
+    const input = inTa.value;
+    if (!input.trim()) { showError("⚠️ No hay contenido para convertir."); return; }
+
+    const sizeCheck = await checkFileSize(input);
+    if (sizeCheck === false) { showError("⚠️ Operación cancelada."); return; }
+
+    // Si la entrada parece JSON se convierte a XML; si no, XML a JSON
+    const isJSON = /^[\[{]/.test(input.trim());
+    const mb = (new Blob([input]).size / (1024*1024)).toFixed(1);
+    showLoading(isJSON ? "Convirtiendo JSON → XML..." : "Convirtiendo XML → JSON...",
+      sizeCheck === "large" ? `Archivo de ${mb} MB — esto puede tardar` : "Por favor espera");
+
+    setTimeout(() => {
+      try {
+        renderOutput(isJSON ? jsonToXml(input) : xmlToJson(input));
+      } catch(e) {
+        showError(e.message);
+      } finally {
+        hideLoading();
+      }
+    }, 80);
+  };
+
   $("#copy").onclick = async () => {
     try{
-      await navigator.clipboard.writeText(lastOutputText || "");
+      const lang = $("#copyAs").value;
+      await navigator.clipboard.writeText(asEscapedString(lastOutputText || "", lang));
       const btn = $("#copy");
       const label = btn.textContent;
       btn.textContent = "✅ ¡Copiado!";
@@ -885,6 +1291,36 @@
       showError("No se pudo copiar al portapapeles (permiso del navegador).");
     }
   };
+
+  $("#shareCfg").onclick = async () => {
+    const p = new URLSearchParams({
+      indent: $("#indent").value,
+      tabs: $("#tabs").checked ? 1 : 0,
+      preserve: $("#preserve").checked ? 1 : 0,
+      keepws: $("#keepTextWS").checked ? 1 : 0,
+      compact: $("#compactAttrs").checked ? 1 : 0,
+      theme: $("#themeSel").value,
+      view: viewMode === "hl" ? "resaltada" : viewMode === "txt" ? "texto" : "arbol"
+    });
+    const url = location.href.split("#")[0].split("?")[0] + "?" + p;
+    try {
+      await navigator.clipboard.writeText(url);
+      const btn = $("#shareCfg");
+      const label = btn.textContent;
+      btn.textContent = "✅ ¡Copiado!";
+      setTimeout(() => btn.textContent = label, 1200);
+    } catch {
+      showError("No se pudo copiar al portapapeles (permiso del navegador).");
+    }
+  };
+
+  let searchTimer;
+  $("#search").addEventListener("input", () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(applySearch, 250);
+  });
+  $("#searchPrev").onclick = () => gotoHit(searchIdx - 1);
+  $("#searchNext").onclick = () => gotoHit(searchIdx + 1);
 
   $("#download").onclick = () => {
     if (!lastOutputText) {
@@ -913,17 +1349,16 @@
     inTa.value = "";
     outTa.value = "";
     outHtml.innerHTML = "";
+    outTree.innerHTML = "";
     lastOutputText = "";
     clearError();
     updateKPIs("", "");
+    resetStats();
+    updateGutter(gutterIn, "");
+    updateGutter(gutterOut, "");
+    $("#searchCount").textContent = "";
     setDisableToggleView(false);
-    if (highlightView) {
-      outHtmlWrap.style.display = "block";
-      outTa.style.display = "none";
-    } else {
-      outHtmlWrap.style.display = "none";
-      outTa.style.display = "block";
-    }
+    setViewNoRender(viewMode);
     const btn = $("#clear");
     const label = btn.textContent;
     btn.textContent = "✅ Limpiado!";
@@ -931,26 +1366,23 @@
     inTa.focus();
   };
 
-  $("#theme").onclick = () => {
-    document.body.classList.toggle("dark");
-    const isDark = document.body.classList.contains("dark");
-    $("#theme").textContent = isDark ? "☀️ Modo claro" : "🌙 Modo oscuro";
-  };
+  $("#themeSel").onchange = e => applyTheme(e.target.value);
 
   $("#toggleView").onclick = async () => {
     const input = inTa.value;
     const sizeCheck = await checkFileSizeWithOutConfirm(input);
     if(sizeCheck === "toolarge") {
       showError("⚠️ El archivo es demasiado grande para la vista resaltada. Se mantendrá en vista texto.");
-      setViewWithRenderOutput(false);
+      setViewNoRender("txt");
       setDisableToggleView(true, "Forzada");
       return;
     }
+    const next = VIEW_ORDER[(VIEW_ORDER.indexOf(viewMode) + 1) % VIEW_ORDER.length];
     const mb = (new Blob([input]).size / (1024 * 1024)).toFixed(1);
     showLoading("Cambiando de vista...", sizeCheck === "large" ? `Archivo de ${mb} MB — esto puede tardar` : "Por favor espera");
     setTimeout(() => {
       try {
-        setView(!highlightView)
+        setView(next)
       } catch (e) {
         showError(e.message);
       } finally {
@@ -959,8 +1391,11 @@
     }, 80);
   };
 
-  // KPIs en vivo al escribir/pegar
-  inTa.addEventListener("input", () => updateKPIs(inTa.value, lastOutputText));
+  // KPIs y líneas numeradas en vivo al escribir/pegar
+  inTa.addEventListener("input", () => {
+    updateKPIs(inTa.value, lastOutputText);
+    updateGutter(gutterIn, inTa.value);
+  });
 
   // Drag & drop de archivos XML al panel de entrada
   ;["dragenter","dragover"].forEach(ev => inTa.addEventListener(ev, e=>{
@@ -989,7 +1424,7 @@
       const sizeCheck = await checkFileSizeWithOutConfirm(txt);
       if(sizeCheck === "toolarge") {
         showError("⚠️ El archivo es demasiado grande para la vista resaltada. Se mantendrá en vista texto.");
-        setViewWithRenderOutput(false);
+        setViewNoRender("txt");
         setDisableToggleView(true, "Forzada");
       }
 
@@ -997,6 +1432,7 @@
       saveForUndo();
       inTa.value = txt;
       updateKPIs(inTa.value, lastOutputText);
+      updateGutter(gutterIn, txt);
       clearError();
     } catch(err) {
       showError(`❌ Error al leer el archivo: ${err.message}`);
@@ -1005,19 +1441,22 @@
     }
   });
 
-  // Atajos: Ctrl+Enter (Formatear), Ctrl+M (Minificar), Ctrl+B (Vista), Ctrl+Z/Y (Undo/Redo)
+  // Atajos: Ctrl+Enter (Formatear), Ctrl+M (Minificar), Ctrl+B (Vista), Ctrl+G (Ir a línea), Ctrl+Z/Y (Undo/Redo)
   document.addEventListener("keydown", e=>{
     if (e.ctrlKey && e.key === "Enter"){ e.preventDefault(); $("#fmt").click(); }
     if (e.ctrlKey && (e.key.toLowerCase() === "m")){ e.preventDefault(); $("#min").click(); }
     if (e.ctrlKey && (e.key.toLowerCase() === "b")){ e.preventDefault(); $("#toggleView").click();}
     if (e.ctrlKey && (e.key.toLowerCase() === "l")){ e.preventDefault(); $("#clear").click(); }
+    if (e.ctrlKey && (e.key.toLowerCase() === "g")){ e.preventDefault(); gotoLine(); }
     if (e.ctrlKey && e.key.toLowerCase() === "z" && document.activeElement !== inTa){ e.preventDefault(); applyUndo(); }
     if (e.ctrlKey && e.key.toLowerCase() === "y" && document.activeElement !== inTa){ e.preventDefault(); applyRedo(); }
   });
 
-  // Vista por defecto: Resaltada
-  setView(true);
+  // Configuración inicial: presets vía URL y vista por defecto (Resaltada)
+  applyURLPreset();
+  setView(viewMode);
   updateKPIs("", "");
+  updateGutter(gutterIn, "");
 })();
 </script>
 </body>

@@ -26,7 +26,7 @@ Manual testing checklist (from CONTRIBUTING.md):
 
 ## Architecture
 
-Everything is in `index.html` (~989 lines): CSS in `<style>`, HTML markup in `<body>`, and JavaScript in `<script>`. No modules, no bundler.
+Everything is in `index.html` (~1470 lines): CSS in `<style>`, HTML markup in `<body>`, and JavaScript in `<script>`. No modules, no bundler.
 
 ### Key JavaScript Functions
 
@@ -35,9 +35,16 @@ Everything is in `index.html` (~989 lines): CSS in `<style>`, HTML markup in `<b
 | `prettyFormat(xml, indentChars, preserveWhitespace)` | DOM-tree walk to produce indented XML using `DOMParser` |
 | `minify(xml, opts)` | Minifies via `DOMParser` + `XMLSerializer` + regex cleanup |
 | `highlightXML(xml)` | Regex-based syntax highlighting without libraries |
-| `renderOutput(text)` | Switches between plain textarea and highlighted view |
+| `renderOutput(text)` | Renders output in the active view mode (`hl`/`txt`/`tree`) |
 | `checkFileSize(text)` | Shows confirmation modal for files >10MB, blocks >15MB |
 | `updateKPIs(inText, outText)` | Updates the input/output/savings byte counters |
+| `collectStats(doc)` | Computes element/attribute/depth stats from a parsed doc |
+| `updateGutter(gutter, text)` | Rebuilds line-number gutter (auto-hidden above 30k lines) |
+| `xmlToJson(xml)` / `jsonToXml(json)` | XML ⇄ JSON conversion (`@attr`, `#text`, arrays for repeats) |
+| `buildTreeHTML(xml)` | Read-only collapsible tree view using native `<details>` |
+| `applySearch()` | Highlights search matches in the highlighted view (max 500) |
+| `applyTheme(name)` / `applyURLPreset()` | Visual themes and URL-based config presets |
+| `gotoLine()` | Ctrl+G: jump to a specific line in the input editor |
 
 ### Browser APIs Used
 
@@ -65,7 +72,7 @@ CSS custom properties in `:root` control all colors. Dark mode adds the `.dark` 
 
 - **Single file:** All code must stay in `index.html`.
 - **Zero external dependencies:** No CDN, npm, or third-party code.
-- **Size limits:** Max 800 lines, max 100KB.
+- **Size limits:** Max ~1500 lines, max 100KB (hard limit).
 - **No Web Workers:** Would break the single-file constraint.
 
 ## Feature Evaluation
