@@ -24,6 +24,17 @@ Manual testing checklist (from CONTRIBUTING.md):
 - No console errors
 - No regressions in format/minify/copy/download
 
+## Automated Tests
+
+`tests.html` is a dev-only regression suite (not distributed — the product is still only `index.html`). It loads `index.html` in an iframe and exercises the public `window.XMLShield` API. Run it over HTTP (file:// blocks iframe access in Chrome):
+
+```
+python -m http.server 8741
+# open http://localhost:8741/tests.html
+```
+
+All tests must pass before committing changes to `index.html`.
+
 ## Architecture
 
 Everything is in `index.html` (~1470 lines): CSS in `<style>`, HTML markup in `<body>`, and JavaScript in `<script>`. No modules, no bundler.
@@ -70,9 +81,9 @@ CSS custom properties in `:root` control all colors. Dark mode adds the `.dark` 
 
 ## Constraints (Non-Negotiable for v2.x)
 
-- **Single file:** All code must stay in `index.html`.
+- **Single file:** All product code must stay in `index.html` (`tests.html` is dev-only and not distributed).
 - **Zero external dependencies:** No CDN, npm, or third-party code.
-- **Size limits:** Max ~1500 lines, max 100KB (hard limit).
+- **Size limits:** Max ~2500 lines, max 100KB (hard limit).
 - **No Web Workers:** Would break the single-file constraint.
 
 ## Feature Evaluation
@@ -84,7 +95,7 @@ Before adding any feature, apply the **Test de 4 Preguntas** (must pass 3/4):
 3. Does it keep the file auditable in <30 minutes?
 4. Does it work 100% offline without setup?
 
-Features explicitly out of scope for v2.x: XSD/DTD validation, XSLT/XPath, Web Workers, plugins, multi-tab state, native apps (Electron, CLI, browser extension).
+Features explicitly out of scope for v2.x: XSD/DTD validation, XSLT, Web Workers, plugins, multi-tab state, native apps (Electron, CLI, browser extension). XPath (v2.5, via native `document.evaluate()`) and XML diff (v2.6) were promoted into the v2.x roadmap in June 2026 — see docs/ROADMAP.md.
 
 ## Code Style
 

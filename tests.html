@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>XMLShield — Tests de regresión</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  /* Harness de desarrollo — NO se distribuye. El producto es solo index.html */
+  body {
+    font: 15px system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    background: #16213e;
+    color: #ddd;
+  }
+  h1 { font-size: 1.4rem; }
+  .note { color: #9ab; font-size: 0.85rem; }
+  #summary {
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+  }
+  #summary.ok   { background: #0aa15b33; color: #4ade80; }
+  #summary.fail { background: #b0000033; color: #f87171; }
+  table { border-collapse: collapse; width: 100%; }
+  td, th { padding: 0.4rem 0.6rem; border-bottom: 1px solid #333; text-align: left; vertical-align: top; }
+  .pass { color: #4ade80; }
+  .fail { color: #f87171; }
+  .err  { font: 12px ui-monospace, Consolas, monospace; color: #fca5a5; white-space: pre-wrap; }
+  code { background: #ffffff14; padding: 0.1rem 0.3rem; border-radius: 4px; }
+</style>
+</head>
+<body>
+<h1>🧪 XMLShield — Tests de regresión</h1>
+<p class="note">
+  Carga <code>index.html</code> en un iframe y ejercita la API <code>window.XMLShield</code>.
+  Requiere servirse por HTTP (ej. <code>python -m http.server</code>) — con <code>file://</code>
+  Chrome bloquea el acceso al iframe.
+</p>
+<div id="summary">Cargando index.html…</div>
+<table id="results"></table>
+<iframe id="app" src="index.html" style="display:none"></iframe>
+
+<script>
+(function(){
+  const tests = [];
+  function test(name, fn){ tests.push({ name, fn }); }
+
+  function assertEq(actual, expected, msg = ""){
+    if (actual !== expected)
+      throw new Error(`${msg}\nesperado: ${JSON.stringify(expected)}\nrecibido: ${JSON.stringify(actual)}`);
+  }
+  function assertTrue(cond, msg = "condición falsa"){
+    if (!cond) throw new Error(msg);
+  }
+  function assertThrows(fn, pattern, msg = "debía lanzar error"){
+    try { fn(); } catch(e){
+      assertTrue(pattern.test(e.message), `mensaje de error inesperado: ${e.message}`);
+      return;
+    }
+    throw new Error(msg);
+  }
+
+  // ============================================================
+  // Definición de tests. X = window.XMLShield del iframe
+  // ============================================================
+  function defineTests(X){
+
+    // --- prettyFormat ---
+    test("prettyFormat: formatea con sangría de 2 espacios", () => {
+      assertEq(X.prettyFormat("<a><b>x</b></a>", "  "), "<a>\n  <b>x</b>\n</a>\n");
+    });
+
+    test("prettyFormat: formatea con tabs", () => {
+      assertEq(X.prettyFormat("<a><b>x</b></a>", "\t"), "<a>\n\t<b>x</b>\n</a>\n");
+    });
+
+    test("prettyFormat: conserva la declaración XML sin duplicarla (regresión v2.4 bug #1)", () => {
+      const out = X.prettyFormat('<?xml version="1.0" encoding="UTF-8"?><a/>', "  ");
+      assertTrue(out.startsWith('<?xml version="1.0" encoding="UTF-8"?>'), "la declaración XML se perdió");
+      assertEq((out.match(/<\?xml\s/g) || []).length, 1, "declaración duplicada");
+    });
+
+    test("prettyFormat: conserva comentarios top-level (regresión v2.4 bug #1)", () => {
+      const out = X.prettyFormat("<!-- licencia --><a/>", "  ");
+      assertTrue(out.includes("<!-- licencia -->"), "el comentario top-level se perdió");
+    });
+
+    test("prettyFormat: autocierra elementos vacíos", () => {
+      assertEq(X.prettyFormat("<a></a>", "  "), "<a/>\n");
+    });
+
+    test("prettyFormat: normaliza espacios en texto por defecto", () => {
+      assertEq(X.prettyFormat("<a>  x   y  </a>", "  "), "<a>x y</a>\n");
+    });
+
+    test("prettyFormat: preserveWhitespace mantiene el texto intacto", () => {
+      assertEq(X.prettyFormat("<a>  x  </a>", "  ", true), "<a>  x  </a>\n");
+    });
+
+    test("prettyFormat: conserva CDATA", () => {
+      const out = X.prettyFormat("<a><![CDATA[1 < 2]]></a>", "  ");
+      assertTrue(out.includes("<![CDATA[1 < 2]]>"), "CDATA alterado o perdido");
+    });
+
+    test("prettyFormat: conserva atributos", () => {
+      assertEq(X.prettyFormat('<a b="1" c="2"/>', "  "), '<a b="1" c="2"/>\n');
+    });
+
+    test("prettyFormat: XML inválido lanza error descriptivo", () => {
+      assertThrows(() => X.prettyFormat("<a><b></a>", "  "), /línea \d+|inválido/i);
+    });
+
+    // --- minify ---
+    const MIN = { keepTextWS: true, compactAttrs: true };
+
+    test("minify: colapsa espacios entre tags", () => {
+      assertEq(X.minify("<a>\n  <b/>\n  <c/>\n</a>", MIN), "<a><b/><c/></a>");
+    });
+
+    test("minify: no toca texto con '=' (regresión v2.4 bug #3)", () => {
+      assertEq(X.minify("<a>x = y</a>", MIN), "<a>x = y</a>");
+    });
+
+    test("minify: no toca el contenido de CDATA (regresión v2.4 bug #3)", () => {
+      assertEq(
+        X.minify("<a><![CDATA[1 >  < 2 = 3]]></a>", MIN),
+        "<a><![CDATA[1 >  < 2 = 3]]></a>"
+      );
+    });
+
+    test("minify: no toca el contenido de comentarios (regresión v2.4 bug #3)", () => {
+      assertEq(
+        X.minify("<a><!-- x  =  y --></a>", MIN),
+        "<a><!-- x  =  y --></a>"
+      );
+    });
+
+    test("minify: conserva la declaración XML sin duplicarla (regresión v2.4 bug #1)", () => {
+      assertEq(
+        X.minify('<?xml version="1.0"?>\n<a/>', MIN),
+        '<?xml version="1.0"?><a/>'
+      );
+    });
+
+    test("minify: keepTextWS=false normaliza espacios del texto", () => {
+      assertEq(
+        X.minify("<a>  x   y  </a>", { keepTextWS: false, compactAttrs: false }),
+        "<a>x y</a>"
+      );
+    });
+
+    test("minify: normaliza espacios alrededor de '=' en atributos", () => {
+      assertEq(X.minify('<a  b = "1" />', MIN), '<a b="1"/>');
+    });
+
+    test("minify: XML inválido lanza error descriptivo", () => {
+      assertThrows(() => X.minify("<a><b></a>", MIN), /línea \d+|inválido/i);
+    });
+
+    // --- xmlToJson (lee la sangría de los controles del iframe) ---
+    test("xmlToJson: atributos con prefijo @", () => {
+      const obj = JSON.parse(X.xmlToJson('<a b="1"><c>x</c></a>'));
+      assertEq(obj.a["@b"], "1");
+      assertEq(obj.a.c, "x");
+    });
+
+    test("xmlToJson: elementos repetidos agrupados en array", () => {
+      const obj = JSON.parse(X.xmlToJson("<a><b>1</b><b>2</b></a>"));
+      assertTrue(Array.isArray(obj.a.b), "no es array");
+      assertEq(obj.a.b.length, 2);
+      assertEq(obj.a.b[1], "2");
+    });
+
+    test("xmlToJson: texto mixto como #text", () => {
+      const obj = JSON.parse(X.xmlToJson('<a b="1">hola</a>'));
+      assertEq(obj.a["#text"], "hola");
+      assertEq(obj.a["@b"], "1");
+    });
+
+    test("xmlToJson: hoja de solo texto es string directo", () => {
+      const obj = JSON.parse(X.xmlToJson("<a>x</a>"));
+      assertEq(obj.a, "x");
+    });
+
+    // --- jsonToXml ---
+    test("jsonToXml: estructura básica con atributos", () => {
+      assertEq(
+        X.jsonToXml('{"a":{"@b":"1","c":"x"}}'),
+        '<a b="1">\n  <c>x</c>\n</a>'
+      );
+    });
+
+    test("jsonToXml: arrays repiten el elemento", () => {
+      const out = X.jsonToXml('{"a":{"b":["1","2"]}}');
+      assertTrue(out.includes("<b>1</b>") && out.includes("<b>2</b>"), "faltan elementos repetidos");
+    });
+
+    test("jsonToXml: escapa & < > \" en texto y atributos", () => {
+      const out = X.jsonToXml('{"a":{"@b":"x<&\\"","#text":"1<2&"}}');
+      assertTrue(out.includes('b="x&lt;&amp;&quot;"'), "atributo sin escapar: " + out);
+      assertTrue(out.includes("1&lt;2&amp;"), "texto sin escapar: " + out);
+    });
+
+    test("jsonToXml: múltiples claves raíz se envuelven en <root>", () => {
+      const out = X.jsonToXml('{"a":"1","b":"2"}');
+      assertTrue(out.startsWith("<root>") && out.endsWith("</root>"), "no envuelto en root: " + out);
+    });
+
+    test("jsonToXml: JSON inválido lanza error descriptivo", () => {
+      assertThrows(() => X.jsonToXml("{ rotura"), /JSON inválido/i);
+    });
+
+    // --- Roundtrip XML → JSON → XML ---
+    test("roundtrip: XML→JSON→XML equivale al original (canonicalizado)", () => {
+      const xml = '<catalog t="2"><b id="1">x</b><b id="2">y</b><tags><t>a</t><t>b</t></tags></catalog>';
+      const back = X.jsonToXml(X.xmlToJson(xml));
+      const canon = s => X.minify(s, { keepTextWS: false, compactAttrs: true });
+      assertEq(canon(back), canon(xml));
+    });
+
+    // --- highlightXML ---
+    test("highlightXML: colorea el nombre de tags CON atributos (regresión v2.4 bug #2)", () => {
+      const h = X.highlightXML('<a b="1">x</a>');
+      assertTrue(h.includes('<span class="tag">a</span>'), "tag sin colorear: " + h);
+      assertTrue(h.includes('<span class="attr">b</span>'), "atributo sin colorear: " + h);
+    });
+
+    test("highlightXML: colorea comentarios", () => {
+      assertTrue(X.highlightXML("<!-- hi -->").includes('class="comment"'));
+    });
+
+    test("highlightXML: escapa HTML del contenido", () => {
+      assertTrue(X.highlightXML("<a>1 & 2</a>").includes("1 &amp; 2"));
+    });
+
+    // --- asEscapedString ---
+    test("asEscapedString: js produce string JSON válido", () => {
+      assertEq(X.asEscapedString('a\n"b"', "js"), JSON.stringify('a\n"b"'));
+    });
+
+    test("asEscapedString: python produce string con escapes", () => {
+      assertEq(X.asEscapedString("x\ny", "python"), '"x\\ny"');
+    });
+
+    test("asEscapedString: java concatena línea a línea", () => {
+      assertEq(X.asEscapedString("l1\nl2", "java"), '"l1\\n" +\n"l2"');
+    });
+
+    test("asEscapedString: plain devuelve el texto tal cual", () => {
+      assertEq(X.asEscapedString("x\ny", "plain"), "x\ny");
+    });
+
+    // --- buildTreeHTML ---
+    test("buildTreeHTML: genera <details> colapsable para XML válido", () => {
+      const t = X.buildTreeHTML("<a><b>x</b></a>");
+      assertTrue(t.includes("<details") && t.includes('class="tag"'), "árbol incompleto: " + t);
+    });
+
+    test("buildTreeHTML: salida no-XML muestra aviso en vez de romper", () => {
+      assertTrue(X.buildTreeHTML('{"json": true}').includes("⚠️"));
+    });
+  }
+
+  // ============================================================
+  // Runner
+  // ============================================================
+  function runAll(){
+    const table = document.getElementById("results");
+    let passed = 0;
+    for (const t of tests){
+      const row = table.insertRow();
+      const status = row.insertCell();
+      const name = row.insertCell();
+      name.textContent = t.name;
+      try {
+        t.fn();
+        status.innerHTML = '<span class="pass">✅</span>';
+        passed++;
+      } catch(e){
+        status.innerHTML = '<span class="fail">❌</span>';
+        const err = document.createElement("div");
+        err.className = "err";
+        err.textContent = e.message;
+        name.appendChild(err);
+      }
+    }
+    const summary = document.getElementById("summary");
+    const allOk = passed === tests.length;
+    summary.className = allOk ? "ok" : "fail";
+    summary.textContent = allOk
+      ? `✅ ${passed}/${tests.length} tests pasaron`
+      : `❌ ${passed}/${tests.length} tests pasaron — ${tests.length - passed} fallaron`;
+  }
+
+  function start(){
+    const frame = document.getElementById("app");
+    let X = null, idoc = null;
+    try {
+      X = frame.contentWindow.XMLShield;
+      idoc = frame.contentWindow.document;
+    } catch(e){ /* acceso bloqueado (file://) */ }
+
+    if (!X){
+      const summary = document.getElementById("summary");
+      summary.className = "fail";
+      summary.textContent = "❌ No se pudo acceder a index.html — sirve la carpeta por HTTP: python -m http.server";
+      return;
+    }
+
+    // Configuración determinista para los tests que leen controles del DOM
+    idoc.getElementById("indent").value = "2";
+    idoc.getElementById("tabs").checked = false;
+
+    defineTests(X);
+    runAll();
+  }
+
+  const frame = document.getElementById("app");
+  if (frame.contentDocument && frame.contentDocument.readyState === "complete" && frame.contentWindow.XMLShield) {
+    start();
+  } else {
+    frame.addEventListener("load", start);
+  }
+})();
+</script>
+</body>
+</html>
