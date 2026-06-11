@@ -182,9 +182,9 @@ Para mantener la simplicidad y auditabilidad:
 
 | Aspecto | Estado Actual v2.3 | Límite Máximo v2.x |
 |---------|-------------------|-------------------|
-| **Líneas de código** | ~1470 | ~1500 |
-| **Tamaño del archivo** | ~50KB | 100KB |
-| **Tiempo de auditoría** | ~30 minutos | 30 minutos |
+| **Líneas de código** | ~1470 | ~2500 |
+| **Tamaño del archivo** | ~50KB | 100KB (límite duro) |
+| **Tiempo de auditoría** | ~30 minutos | 45 minutos |
 | **Dependencias externas** | 0 | 0 |
 
 ### Test de 4 Preguntas
@@ -229,7 +229,31 @@ Refactorización completa con diseño moderno, panel dividido, gradientes, modo 
 - ✅ Ir a línea específica (Ctrl+G)
 - ✅ Temas visuales adicionales (High Contrast, Solarized, Monokai)
 
-**🎉 El roadmap v2.x está completo** — ~1470 líneas | ~50KB total (la mitad del límite máximo de 100KB)
+### v2.4 - "Polish & Trust" 🔨 EN PROGRESO
+**Fecha estimada:** Junio-Julio 2026
+
+- ✅ Bugfixes: declaración XML perdida al formatear/minificar, resaltado de tags con atributos, minify vs CDATA/comentarios
+- ✅ Harness de tests de regresión (`tests.html`, solo desarrollo — 37 tests)
+- 🔲 Botón "Usar salida como entrada" (encadenar operaciones)
+- 🔲 Botón "Abrir archivo" (soporte móvil)
+- 🔲 Validación en vivo con indicador ✓/✗
+- 🔲 Tema automático según el sistema (`prefers-color-scheme`)
+- 🔲 Recordar configuración (opt-in, 100% local)
+
+### v2.5 - "Power Tools" 📅 Q3 2026
+**Fecha estimada:** Agosto-Septiembre 2026
+
+- 🔲 XPath queries (con `document.evaluate()` nativo del navegador)
+- 🔲 Buscar y reemplazar en la entrada
+- 🔲 Conversión XML → CSV para datos tabulares
+- 🔲 Ordenar atributos y eliminar comentarios al minificar (opciones)
+
+### v2.6 - "Compare" 📅 Q4 2026
+**Fecha estimada:** Octubre-Diciembre 2026
+
+- 🔲 Diff/comparación semántica de XMLs lado a lado (ignora orden de atributos y espacios)
+
+**Estado:** roadmap original v2.1-v2.3 completado (~1470 líneas, ~50KB). El techo v2.x sube a ~2500 líneas; el límite duro sigue siendo 100KB.
 
 ### v3.0+ - "XMLShield Extended" 🔮 2027+
 **Proyecto separado** con features avanzadas:
@@ -296,10 +320,15 @@ Este proyecto mantiene documentación exhaustiva para guiar su desarrollo:
 - Vista de árbol navegable
 - Temas adicionales
 
+### 🔨 En Roadmap (v2.4-v2.6)
+- Bugfixes + harness de tests de regresión
+- Validación en vivo, abrir archivo (móvil), encadenar operaciones
+- XPath queries, buscar y reemplazar, XML → CSV
+- Diff/comparación semántica de XMLs
+
 ### 🤔 Bajo Evaluación (v3.0+)
 - Validación XSD (requiere ~2000+ líneas)
-- Comparación/Diff de XMLs
-- XPath queries básicos
+- Resaltado de sintaxis en el panel de entrada
 - PWA (Progressive Web App)
 
 ### ❌ Explícitamente FUERA del Alcance (v2.x)
@@ -407,7 +436,8 @@ Este proyecto valora las contribuciones que mantienen su filosofía de simplicid
 - ✅ Mantener compatibilidad con navegadores modernos
 - ✅ Documentar cambios en el código
 - ✅ Actualizar el Changelog
-- ✅ No exceder límites: ~1500 líneas, 100KB
+- ✅ No exceder límites: ~2500 líneas, 100KB (duro)
+- ✅ Los tests de `tests.html` deben pasar (servir con `python -m http.server`)
 
 ### Reconocimiento
 

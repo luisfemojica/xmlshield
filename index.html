@@ -890,8 +890,12 @@
       }
     }
 
-    walk(doc.documentElement, 0);
-    return output;
+    // Recorrer desde el documento (no desde el raíz) conserva comentarios y
+    // PIs fuera del elemento raíz. La declaración XML no es un nodo DOM
+    // (DOMParser la consume), así que se rescata del texto original.
+    walk(doc, 0);
+    const decl = (xml.match(/^\s*<\?xml[\s\S]*?\?>/) || [""])[0].trim();
+    return decl && !/^<\?xml\s/.test(output) ? decl + "\n" + output : output;
   }
 
   // --- Recorrido recursivo de texto para minificado (sin TreeWalker) ---
@@ -916,33 +920,54 @@
     if (!opts.keepTextWS) normalizeTextNodesRec(doc);
 
     let xmlOut = new XMLSerializer().serializeToString(doc);
+
+    // Proteger CDATA y comentarios: los regex de limpieza no deben tocar su
+    // contenido. Se reemplazan por placeholders con \x00 (carácter ilegal en
+    // XML, no puede venir del documento) y se restauran al final.
+    const protectedParts = [];
+    xmlOut = xmlOut.replace(/<!\[CDATA\[[\s\S]*?\]\]>|<!--[\s\S]*?-->/g, m => {
+      protectedParts.push(m);
+      return `<\x00${protectedParts.length - 1}\x00/>`;
+    });
+
     xmlOut = xmlOut.replace(/>\s+</g, "><").trim();
 
     if (opts.compactAttrs) {
-      xmlOut = xmlOut.replace(/\s*=\s*/g, "=");
-      xmlOut = xmlOut.replace(/<([^!\?][^>]+)>/g, (m, inner) => {
+      xmlOut = xmlOut.replace(/<([^!\?\x00][^>]+)>/g, (m, inner) => {
         let out = '';
         let inQuote = false, quoteChar = '';
         for (let i=0;i<inner.length;i++){
           const ch = inner[i];
-          if ((ch === '"' || ch === "'") && !inQuote){ inQuote = true; quoteChar = ch; out += ch; continue; }
-          if (inQuote && ch === quoteChar){ inQuote = false; quoteChar = ''; out += ch; continue; }
-          if (!inQuote) {
-            if (/\s/.test(ch)) {
-              if (out[out.length-1] !== ' ') out += ' ';
-            } else {
-              out += ch;
-            }
-          } else {
+          if (inQuote){
             out += ch;
+            if (ch === quoteChar){ inQuote = false; quoteChar = ''; }
+            continue;
           }
+          if (ch === '"' || ch === "'"){ inQuote = true; quoteChar = ch; out += ch; continue; }
+          if (ch === '='){
+            // Quitar espacios alrededor del = solo fuera de comillas
+            out = out.replace(/\s+$/, '') + '=';
+            while (i + 1 < inner.length && /\s/.test(inner[i + 1])) i++;
+            continue;
+          }
+          if (/\s/.test(ch)){
+            if (out[out.length-1] !== ' ') out += ' ';
+            continue;
+          }
+          out += ch;
         }
         return `<${out.trim()}>`;
       });
       xmlOut = xmlOut.replace(/\s+\/>/g, "/>");
     }
 
-    return xmlOut;
+    xmlOut = xmlOut.replace(/<\x00(\d+)\x00\/>/g, (m, i) => protectedParts[i]);
+
+    // Rescatar la declaración XML del texto original, salvo que el
+    // serializador ya la haya emitido (Chrome lo hace, otros motores no).
+    // "<?xml " con espacio es inequívoco: "xml" es nombre reservado para PIs.
+    const decl = (xml.match(/^\s*<\?xml[\s\S]*?\?>/) || [""])[0].trim();
+    return decl && !/^<\?xml\s/.test(xmlOut) ? decl + xmlOut : xmlOut;
   }
 
   // --- Resaltado de sintaxis XML (sin dependencias) ---
@@ -957,7 +982,7 @@
   function highlightXML(xml) {
     let h = escapeHTML(xml);
     h = h.replace(/(&lt;!--[\s\S]*?--&gt;)/g, '<span class="comment">$1</span>');
-    h = h.replace(/(&lt;\/?)([A-Za-z_][\w:\-.]*)([^\s\S]*?)(\/?\&gt;)/g,
+    h = h.replace(/(&lt;\/?)([A-Za-z_][\w:\-.]*)([\s\S]*?)(\/?\&gt;)/g,
       (m, lt, tag, attrs, gt) =>
         `<span class="symbol">${lt}</span><span class="tag">${tag}</span>${attrs}<span class="symbol">${gt}</span>`
     );
@@ -1457,6 +1482,13 @@
   setView(viewMode);
   updateKPIs("", "");
   updateGutter(gutterIn, "");
+
+  // API pública: usada por tests.html (suite de regresión, solo desarrollo)
+  // y disponible en consola para uso avanzado
+  window.XMLShield = {
+    prettyFormat, minify, xmlToJson, jsonToXml,
+    highlightXML, asEscapedString, buildTreeHTML
+  };
 })();
 </script>
 </body>

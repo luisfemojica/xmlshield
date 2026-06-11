@@ -3,7 +3,7 @@
 
 > **Documento vivo** - Se actualiza cada release
 > **Última revisión:** Junio 2026
-> **Versión actual:** v2.3 — 🎉 Roadmap v2.x COMPLETADO
+> **Versión actual:** v2.3 — Roadmap original completado; v2.4-v2.6 planificadas
 
 ---
 
@@ -174,17 +174,140 @@ Cada tema solo define variables CSS; las reglas compartidas las aplican. Combina
 
 ---
 
-## 🔮 Visión Futura (Post v2.3)
+## 🎯 Versiones Planificadas
+
+### v2.4 - "Polish & Trust" 🔨 EN PROGRESO
+**Fecha estimada:** Junio-Julio 2026
+**Esfuerzo:** 1-2 semanas
+**Prioridad:** Alta
+
+#### Objetivos
+Pagar deuda técnica detectada en la auditoría post-v2.3, establecer una red de tests de regresión, y sumar quick wins de alto valor.
+
+#### Bugfixes (deuda técnica)
+
+##### 1. Declaración XML y comentarios top-level se pierden al formatear/minificar ✅ IMPLEMENTADO
+**Complejidad:** Baja | **Líneas:** ~15
+
+`prettyFormat` recorría desde `documentElement`, descartando la declaración `<?xml ...?>` (que `DOMParser` consume y no expone como nodo) y cualquier comentario o PI fuera del elemento raíz. Es pérdida de datos silenciosa.
+
+##### 2. El resaltado no colorea nombres de tags con atributos ✅ IMPLEMENTADO
+**Complejidad:** Muy Baja | **Líneas:** ~2
+
+El grupo `[^\s\S]*?` del regex de tags en `highlightXML` es un conjunto vacío imposible de matchear: solo los tags sin atributos recibían color en el nombre.
+
+##### 3. `minify` puede corromper CDATA, comentarios y texto con `=` ✅ IMPLEMENTADO
+**Complejidad:** Media | **Líneas:** ~30
+
+Los regex de limpieza (`>\s+<`, `\s*=\s*`) operaban sobre el string serializado completo, incluyendo el interior de `<![CDATA[...]]>`, comentarios, y nodos de texto con signos `=`.
+
+#### Infraestructura
+
+##### 4. Harness de tests (`tests.html`) ✅ IMPLEMENTADO — 37 tests
+**Complejidad:** Media | **Líneas:** ~330 (archivo separado, solo desarrollo)
+
+Suite de regresión sin frameworks que ejercita `prettyFormat`, `minify`, `xmlToJson`/`jsonToXml`, `highlightXML` y `asEscapedString` vía un iframe. **No se distribuye:** el producto sigue siendo únicamente `index.html`. Se sirve con `python -m http.server` para desarrollo.
+
+#### Quick Wins
+
+##### 5. Botón "Usar salida como entrada" 🔲
+**Complejidad:** Muy Baja | **Líneas:** ~15
+Encadenar operaciones (formatear → convertir → minificar) sin copiar/pegar a mano.
+
+##### 6. Botón "Abrir archivo" 🔲
+**Complejidad:** Muy Baja | **Líneas:** ~15
+`<input type="file">` además del drag & drop — imprescindible para móvil/tablet, donde no existe arrastrar y soltar.
+
+##### 7. Validación en vivo 🔲
+**Complejidad:** Baja | **Líneas:** ~30
+Indicador ✓/✗ con línea de error mientras se escribe (debounced), sin pulsar Formatear.
+
+##### 8. Tema automático (`prefers-color-scheme`) 🔲
+**Complejidad:** Muy Baja | **Líneas:** ~5
+Arrancar en oscuro si el sistema operativo lo está.
+
+##### 9. Recordar configuración (opt-in) 🔲
+**Complejidad:** Baja | **Líneas:** ~20
+Checkbox explícito "recordar mis preferencias" con `localStorage`. 100% local y opt-in: no compromete la filosofía sin-tracking, pero se documenta visiblemente.
+
+#### Métricas Objetivo v2.4
+- **Tamaño:** ~55KB
+- **Líneas:** ~1600
+- **Tests:** 30+ casos de regresión pasando
+
+---
+
+### v2.5 - "Power Tools" 📅 Q3 2026
+**Fecha estimada:** Agosto-Septiembre 2026
+**Esfuerzo:** 3-4 semanas
+**Prioridad:** Media
+
+#### Features Planificadas
+
+##### 1. XPath queries 🔲
+**Complejidad:** Media | **Líneas:** ~100-150
+
+Reevaluado: estaba descartado para v3.0, pero el navegador ya trae `document.evaluate()` **nativo** — la implementación es solo UI + resaltado de resultados. Pasa el Test de 4 Preguntas (4/4): cero dependencias, offline, <200 líneas, auditable.
+
+- Input de expresión XPath sobre la entrada
+- Lista de nodos coincidentes con conteo
+- Click en resultado → resalta/salta en la salida
+
+##### 2. Buscar y reemplazar en la entrada 🔲
+**Complejidad:** Media | **Líneas:** ~60
+
+La búsqueda actual solo cubre la salida. Reemplazo simple y "reemplazar todo" sobre el editor de entrada, con integración al historial de Undo.
+
+##### 3. Conversión XML → CSV 🔲
+**Complejidad:** Media | **Líneas:** ~80
+
+Para XMLs tabulares (exportaciones de BD/APIs — caso de uso primario #2 de SCOPE.md). Detecta el elemento repetido dominante y aplana atributos/hijos a columnas. Sin inferencia compleja de schema.
+
+##### 4. Opciones de formato extra 🔲
+**Complejidad:** Baja | **Líneas:** ~40
+- Ordenar atributos alfabéticamente (checkbox)
+- Eliminar comentarios al minificar (checkbox)
+
+#### Métricas Objetivo v2.5
+- **Tamaño:** ~65KB
+- **Líneas:** ~1900
+
+---
+
+### v2.6 - "Compare" 📅 Q4 2026
+**Fecha estimada:** Octubre-Diciembre 2026
+**Esfuerzo:** 1-2 meses
+**Prioridad:** Media
+
+#### Features Planificadas
+
+##### 1. Diff/comparación de XMLs 🔲
+**Complejidad:** Alta | **Líneas:** ~300-400
+
+Reevaluado: era la feature v3.0 más alineada con los casos de uso documentados (validar configs antes de deploy, comparar exportaciones). Promovida a v2.x al relajarse el límite de líneas.
+
+- Comparación **semántica**: ignora orden de atributos y espacios no significativos
+- Vista lado a lado con diferencias resaltadas (añadido/eliminado/modificado)
+- Modo texto plano como fallback para archivos grandes
+
+#### Métricas Objetivo v2.6
+- **Tamaño:** ~80KB (dentro del límite duro de 100KB)
+- **Líneas:** ~2300-2500 (nuevo techo v2.x)
+
+---
+
+## 🔮 Visión Futura (Post v2.6)
 
 ### v3.0 - "XMLShield Extended" (2027+)
 **Nota:** Proyecto separado, NO reemplaza v2.x
 
 #### Posibles Features
 - Validación XSD básica
-- Diff/comparación de XMLs
-- XPath queries simples
+- Resaltado de sintaxis en el panel de entrada (editor overlay)
 - Web Workers para procesamiento
 - PWA con service worker
+
+**Nota:** XPath y Diff fueron promovidos al roadmap v2.x (v2.5 y v2.6) tras reevaluarlos: XPath es nativo del navegador y Diff cabe en ~400 líneas auditables.
 
 **Decisión pendiente:** ¿Vale la pena o mejor sugerir herramientas enterprise?
 
@@ -197,9 +320,10 @@ Cada tema solo define variables CSS; las reglas compartidas las aplican. Combina
 ┌──────────┬──────────┬──────────┬──────────┐
 │ Q1       │ Q2       │ Q3       │ Q4       │
 ├──────────┼──────────┼──────────┼──────────┤
-│ v2.0 ✅  │ v2.1 ✅  │          │          │
+│ v2.0 ✅  │ v2.1 ✅  │ v2.5 🔨  │ v2.6 🔨  │
 │          │ v2.2 ✅  │          │          │
 │          │ v2.3 ✅  │          │          │
+│          │ v2.4 🚧  │          │          │
 └──────────┴──────────┴──────────┴──────────┘
 ```
 
@@ -223,7 +347,23 @@ Cada tema solo define variables CSS; las reglas compartidas las aplican. Combina
 ### v2.3 Success Criteria
 - [x] Árbol navegable hasta 5 niveles sin lag (`<details>` nativo)
 - [x] Temas adicionales con WCAG AA compliance (incluye High Contrast)
-- [ ] Decisión tomada sobre v3.0 (go/no-go)
+- [x] Decisión tomada sobre alcance futuro: XPath y Diff promovidos a v2.5/v2.6; XSD sigue en v3.0
+
+### v2.4 Success Criteria
+- [x] Los 3 bugs documentados corregidos con test de regresión cada uno
+- [x] Suite de tests con 30+ casos pasando (37/37)
+- [x] Formatear/minificar conserva la declaración XML y comentarios top-level
+- [ ] Carga de archivos funcional en móvil (botón Abrir archivo)
+
+### v2.5 Success Criteria
+- [ ] XPath funcional con expresiones comunes (`//tag`, `//tag[@attr='x']`, `count()`)
+- [ ] Buscar y reemplazar integrado con Undo
+- [ ] XML→CSV correcto para exportaciones tabulares típicas
+
+### v2.6 Success Criteria
+- [ ] Diff semántico correcto ignorando orden de atributos y espacios
+- [ ] Comparación usable para archivos de hasta 5MB
+- [ ] Archivo final <100KB y <2500 líneas
 
 ---
 
@@ -246,10 +386,13 @@ Cada tema solo define variables CSS; las reglas compartidas las aplican. Combina
 | v2.1 | 100% | 5/5 | ~1100 | ~35KB | ✅ Released |
 | v2.2 | 100% | 4/4 | ~1300 | ~43KB | ✅ Released |
 | v2.3 | 100% | 3/3 | ~1470 | ~50KB | ✅ Released |
+| v2.4 | 45% | 4/9 | ~1600 | ~55KB | 🔨 En progreso |
+| v2.5 | 0% | 0/4 | ~1900 est. | ~65KB est. | 📅 Q3 2026 |
+| v2.6 | 0% | 0/1 | ~2500 est. | ~80KB est. | 📅 Q4 2026 |
 
 ---
 
 **Mantenedor:** Luis Mojica  
 **Contacto:** luisfemojica.com  
-**Versión del documento:** 2.0  
-**Próxima revisión:** Solo si se decide arrancar v3.0 (proyecto separado)
+**Versión del documento:** 3.0  
+**Próxima revisión:** Al cierre de cada versión (v2.4, v2.5, v2.6)

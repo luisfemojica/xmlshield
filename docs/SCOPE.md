@@ -1,8 +1,8 @@
 # 📐 XMLShield - Definición de Alcance
 ## La Versión Simple y Confiable
 
-> **Última actualización:** Febrero 2026  
-> **Versión de referencia:** 2.0  
+> **Última actualización:** Junio 2026  
+> **Versión de referencia:** 2.3 (roadmap v2.4-v2.6 planificado)  
 > **Filosofía:** Un archivo, cero dependencias, cero compromisos
 
 ---
@@ -106,6 +106,30 @@ XMLShield es una herramienta de formateo y minificación de XML que funciona **1
   - Sin editor de temas custom
   - Variables CSS simples
 
+#### 🔵 v2.4 (Polish & Trust) — deuda técnica + quick wins
+**Estimado:** 1-2 semanas | **Complejidad:** Baja-Media | **Líneas:** +100-150
+
+- 🔲 **Bugfixes de la auditoría post-v2.3** (declaración XML perdida, resaltado de tags con atributos, minify vs CDATA/comentarios)
+- 🔲 **Harness de tests** (`tests.html`, archivo separado solo-desarrollo; el producto sigue siendo `index.html`)
+- 🔲 **Botón "Usar salida como entrada"** para encadenar operaciones
+- 🔲 **Botón "Abrir archivo"** (soporte móvil, sin drag & drop)
+- 🔲 **Validación en vivo** con indicador ✓/✗ debounced
+- 🔲 **Tema automático** vía `prefers-color-scheme`
+- 🔲 **Recordar configuración** (opt-in explícito, `localStorage`, 100% local)
+
+#### 🟣 v2.5 (Power Tools)
+**Estimado:** 3-4 semanas | **Complejidad:** Media | **Líneas:** +250-330
+
+- 🔲 **XPath queries** — reevaluado: `document.evaluate()` es nativo del navegador, solo requiere UI (~150 líneas). Pasa el Test de 4 Preguntas 4/4.
+- 🔲 **Buscar y reemplazar en la entrada** con integración a Undo
+- 🔲 **Conversión XML → CSV** para exportaciones tabulares (sin inferencia compleja de schema)
+- 🔲 **Opciones de formato extra**: ordenar atributos, eliminar comentarios al minificar
+
+#### 🔴 v2.6 (Compare)
+**Estimado:** 1-2 meses | **Complejidad:** Alta | **Líneas:** +300-400
+
+- 🔲 **Diff/comparación semántica de XMLs** — reevaluado y promovido desde v3.0: cabe en ~400 líneas auditables y sirve directamente a los casos de uso primarios #2 y #3 (analistas y sysadmins).
+
 ---
 
 ## ❌ Fuera del Alcance (v2.x)
@@ -122,10 +146,11 @@ XMLShield es una herramienta de formateo y minificación de XML que funciona **1
   - Parser complejo
   - Bajo valor para casos de uso modernos
 
-- ❌ **XPath / XSLT**
-  - Requiere motor de query completo
+- ❌ **XSLT**
+  - Requiere motor de transformación completo
   - Alta complejidad de implementación
   - **Alternativa:** Conversión a JSON + jq
+  - **Nota:** XPath fue movido a v2.5 — `document.evaluate()` es nativo del navegador y no requiere motor propio
 
 - ❌ **Web Workers para procesamiento**
   - Rompe el concepto de "un solo archivo"
@@ -147,15 +172,13 @@ XMLShield es una herramienta de formateo y minificación de XML que funciona **1
   - Riesgo de corrupción de datos
   - **Alternativa:** Vista de árbol de solo lectura
 
-- ❌ **Comparación/Diff de XMLs**
-  - Algoritmo diff complejo (~400+ líneas)
-  - Mejor como herramienta separada
-  - **Considerar para:** XMLShield Extended
-
 - ❌ **Exportación a formatos complejos**
-  - CSV con schema inference complejo
   - Excel con formato
-  - **Alternativa:** Solo JSON (más universal)
+  - CSV con inferencia compleja de schema
+  - **Nota:** la conversión XML→CSV *simple* (elemento repetido → filas) fue movida a v2.5
+  - **Alternativa para el resto:** JSON (más universal)
+
+> **Movidos al roadmap v2.x (Junio 2026):** Comparación/Diff de XMLs (→ v2.6) y XPath queries (→ v2.5), tras reevaluarlos con el Test de 4 Preguntas y relajar el límite de líneas.
 
 - ❌ **Aplicaciones nativas**
   - Electron app
@@ -171,10 +194,12 @@ XMLShield es una herramienta de formateo y minificación de XML que funciona **1
 
 | Métrica | Límite Actual | Límite v2.x | Límite v3.0+ |
 |---------|---------------|-------------|--------------|
-| **Líneas totales** | ~1470 | ~1500 máximo | 2000+ |
-| **Tamaño archivo** | ~50KB | 100KB máximo | 150KB+ |
-| **Tiempo auditoría** | 30 min | 30 min máximo | 60+ min |
+| **Líneas totales** | ~1470 | ~2500 máximo | 3000+ |
+| **Tamaño archivo** | ~50KB | 100KB máximo (duro) | 150KB+ |
+| **Tiempo auditoría** | 30 min | 45 min máximo | 60+ min |
 | **Dependencias externas** | 0 | 0 | 0* |
+
+> **Nota (Junio 2026):** El techo de líneas subió de ~1500 a ~2500 para dar cabida a v2.4-v2.6 (decisión del mantenedor). El límite **duro** sigue siendo el peso: 100KB. El producto distribuible sigue siendo un único `index.html`; `tests.html` es un artefacto de desarrollo que no se distribuye.
 
 *Para v3.0+: Permitido código inline de bibliotecas específicas, pero siempre auditable
 
@@ -351,8 +376,8 @@ Este documento debe revisarse:
 
 ### Próxima revisión programada
 
-**Fecha:** Agosto 2026  
-**Trigger:** Release de v2.3 o acumulación de 10+ propuestas rechazadas
+**Fecha:** Enero 2027  
+**Trigger:** Release de v2.6 o acumulación de 10+ propuestas rechazadas
 
 ---
 
