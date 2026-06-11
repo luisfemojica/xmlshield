@@ -106,16 +106,16 @@ XMLShield es una herramienta de formateo y minificación de XML que funciona **1
   - Sin editor de temas custom
   - Variables CSS simples
 
-#### 🔵 v2.4 (Polish & Trust) — deuda técnica + quick wins
-**Estimado:** 1-2 semanas | **Complejidad:** Baja-Media | **Líneas:** +100-150
+#### 🔵 v2.4 (Polish & Trust) — deuda técnica + quick wins ✅ COMPLETADO
+**Estimado:** 1-2 semanas | **Complejidad:** Baja-Media | **Líneas:** +110
 
-- 🔲 **Bugfixes de la auditoría post-v2.3** (declaración XML perdida, resaltado de tags con atributos, minify vs CDATA/comentarios)
-- 🔲 **Harness de tests** (`tests.html`, archivo separado solo-desarrollo; el producto sigue siendo `index.html`)
-- 🔲 **Botón "Usar salida como entrada"** para encadenar operaciones
-- 🔲 **Botón "Abrir archivo"** (soporte móvil, sin drag & drop)
-- 🔲 **Validación en vivo** con indicador ✓/✗ debounced
-- 🔲 **Tema automático** vía `prefers-color-scheme`
-- 🔲 **Recordar configuración** (opt-in explícito, `localStorage`, 100% local)
+- ✅ **Bugfixes de la auditoría post-v2.3** (declaración XML perdida, resaltado de tags con atributos, minify vs CDATA/comentarios)
+- ✅ **Harness de tests** (`tests.html`, archivo separado solo-desarrollo; el producto sigue siendo `index.html`) — 42 tests
+- ✅ **Botón "Reusar salida"** para encadenar operaciones
+- ✅ **Botón "Abrir archivo"** (soporte móvil, acepta .xml y .json)
+- ✅ **Validación en vivo** con indicador ✓/✗ debounced y línea del error
+- ✅ **Tema automático** vía `prefers-color-scheme`
+- ✅ **Recordar configuración** (opt-in explícito, `localStorage`, 100% local)
 
 #### 🟣 v2.5 (Power Tools)
 **Estimado:** 3-4 semanas | **Complejidad:** Media | **Líneas:** +250-330

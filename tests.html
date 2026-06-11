@@ -64,10 +64,13 @@
     throw new Error(msg);
   }
 
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+
   // ============================================================
-  // Definición de tests. X = window.XMLShield del iframe
+  // Definición de tests. X = window.XMLShield del iframe,
+  // idoc/iwin = document y window del iframe (para tests de UI)
   // ============================================================
-  function defineTests(X){
+  function defineTests(X, idoc, iwin){
 
     // --- prettyFormat ---
     test("prettyFormat: formatea con sangría de 2 espacios", () => {
@@ -263,12 +266,62 @@
     test("buildTreeHTML: salida no-XML muestra aviso en vez de romper", () => {
       assertTrue(X.buildTreeHTML('{"json": true}').includes("⚠️"));
     });
+
+    // --- UI: quick wins v2.4 (se ejecutan al final, mutan estado del iframe) ---
+    test("UI: validación en vivo marca XML válido", async () => {
+      const inp = idoc.getElementById("in");
+      inp.value = "<a><b/></a>";
+      inp.dispatchEvent(new Event("input"));
+      await wait(600);
+      const st = idoc.getElementById("liveStatus");
+      assertTrue(st.textContent.includes("✓"), "no marcó válido: " + st.textContent);
+      assertEq(st.className, "ok");
+    });
+
+    test("UI: validación en vivo marca XML inválido con línea", async () => {
+      const inp = idoc.getElementById("in");
+      inp.value = "<a>\n<b>\n</a>";
+      inp.dispatchEvent(new Event("input"));
+      await wait(600);
+      const st = idoc.getElementById("liveStatus");
+      assertTrue(st.textContent.includes("✗"), "no marcó inválido: " + st.textContent);
+      assertEq(st.className, "bad");
+    });
+
+    test("UI: validación en vivo reconoce JSON", async () => {
+      const inp = idoc.getElementById("in");
+      inp.value = '{"a": 1}';
+      inp.dispatchEvent(new Event("input"));
+      await wait(600);
+      assertTrue(idoc.getElementById("liveStatus").textContent.includes("JSON válido"));
+    });
+
+    test("UI: botón Reusar salida copia la salida a la entrada", async () => {
+      const inp = idoc.getElementById("in");
+      inp.value = "<a><b>x</b></a>";
+      inp.dispatchEvent(new Event("input"));
+      idoc.getElementById("fmt").click();
+      await wait(400);
+      idoc.getElementById("useOut").click();
+      assertEq(inp.value, "<a>\n  <b>x</b>\n</a>\n");
+    });
+
+    test("UI: Recordar config guarda en localStorage y borra al desmarcar", () => {
+      const ls = iwin.localStorage;
+      const rem = idoc.getElementById("remember");
+      rem.checked = true;
+      rem.dispatchEvent(new Event("change"));
+      assertTrue(!!ls.getItem("xmlshield-prefs"), "no guardó las preferencias");
+      rem.checked = false;
+      rem.dispatchEvent(new Event("change"));
+      assertTrue(!ls.getItem("xmlshield-prefs"), "no borró las preferencias al desmarcar");
+    });
   }
 
   // ============================================================
   // Runner
   // ============================================================
-  function runAll(){
+  async function runAll(){
     const table = document.getElementById("results");
     let passed = 0;
     for (const t of tests){
@@ -277,7 +330,7 @@
       const name = row.insertCell();
       name.textContent = t.name;
       try {
-        t.fn();
+        await t.fn();
         status.innerHTML = '<span class="pass">✅</span>';
         passed++;
       } catch(e){
@@ -314,8 +367,9 @@
     // Configuración determinista para los tests que leen controles del DOM
     idoc.getElementById("indent").value = "2";
     idoc.getElementById("tabs").checked = false;
+    frame.contentWindow.localStorage.removeItem("xmlshield-prefs");
 
-    defineTests(X);
+    defineTests(X, idoc, frame.contentWindow);
     runAll();
   }
 

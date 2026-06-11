@@ -37,7 +37,7 @@ All tests must pass before committing changes to `index.html`.
 
 ## Architecture
 
-Everything is in `index.html` (~1470 lines): CSS in `<style>`, HTML markup in `<body>`, and JavaScript in `<script>`. No modules, no bundler.
+Everything is in `index.html` (~1600 lines): CSS in `<style>`, HTML markup in `<body>`, and JavaScript in `<script>`. No modules, no bundler.
 
 ### Key JavaScript Functions
 
@@ -56,6 +56,9 @@ Everything is in `index.html` (~1470 lines): CSS in `<style>`, HTML markup in `<
 | `applySearch()` | Highlights search matches in the highlighted view (max 500) |
 | `applyTheme(name)` / `applyURLPreset()` | Visual themes and URL-based config presets |
 | `gotoLine()` | Ctrl+G: jump to a specific line in the input editor |
+| `loadFile(f)` | Shared file loader for drag & drop and the Open button |
+| `liveValidate()` | Debounced ✓/✗ indicator in the input header (XML or JSON, paused >2MB) |
+| `savePrefs()` / `loadPrefs()` | Opt-in config persistence in localStorage (`xmlshield-prefs`) |
 
 ### Browser APIs Used
 

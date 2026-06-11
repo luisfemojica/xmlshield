@@ -32,10 +32,13 @@ XMLShield es una herramienta de formateo y minificación de XML que funciona com
 - 📊 **KPIs en tiempo real** - Tamaño, ahorro, elementos, atributos y profundidad
 - 💾 **Descarga de resultados** con timestamp
 - 📋 **Copiar al portapapeles** como texto o string escapado (JS, Python, Java)
-- 🎨 **5 temas visuales** - Claro, Oscuro, Alto Contraste, Solarized y Monokai
+- 🎨 **5 temas visuales** - Claro, Oscuro, Alto Contraste, Solarized y Monokai (+ tema automático según el sistema)
 - 🔗 **Presets de configuración vía URL** compartibles
+- ✓ **Validación en vivo** - Indicador ✓/✗ con línea del error mientras escribes
+- ⬆️ **Encadenar operaciones** - Botón "Reusar salida" (formatear → convertir → minificar)
 - ⌨️ **Atajos de teclado** para flujo de trabajo rápido (incluye Ctrl+G ir a línea)
-- 🎯 **Drag & drop** - Arrastra archivos .xml directamente
+- 🎯 **Drag & drop y botón Abrir** - Archivos .xml y .json, también en móvil
+- 💾 **Recordar configuración** - Opt-in explícito, 100% local, se borra al desmarcar
 
 ### 🎨 Interfaz
 - Panel dividido lado a lado
@@ -147,7 +150,7 @@ XMLShield está diseñado para:
 
 ✅ **Sin conexión a Internet** - El archivo funciona completamente offline  
 ✅ **Sin telemetría** - No envía datos a ningún servidor  
-✅ **Sin cookies** - No almacena ni rastrea información  
+✅ **Sin cookies** - No almacena nada por defecto. Si activas "Recordar config" se guardan tus preferencias (sangría, tema, vista) en `localStorage` de tu navegador — nunca tu XML, nunca se envía a ningún lado, y se borra al desmarcar la casilla  
 ✅ **Sin CDN** - No carga recursos externos que puedan ser comprometidos  
 ✅ **Código auditable** - Todo el código está en un solo archivo visible (~1500 líneas)  
 ✅ **Sin dependencias** - Cero librerías de terceros que puedan tener vulnerabilidades  
@@ -229,16 +232,16 @@ Refactorización completa con diseño moderno, panel dividido, gradientes, modo 
 - ✅ Ir a línea específica (Ctrl+G)
 - ✅ Temas visuales adicionales (High Contrast, Solarized, Monokai)
 
-### v2.4 - "Polish & Trust" 🔨 EN PROGRESO
-**Fecha estimada:** Junio-Julio 2026
+### v2.4 - "Polish & Trust" ✅ COMPLETADO
+**Fecha:** Junio 2026
 
 - ✅ Bugfixes: declaración XML perdida al formatear/minificar, resaltado de tags con atributos, minify vs CDATA/comentarios
-- ✅ Harness de tests de regresión (`tests.html`, solo desarrollo — 37 tests)
-- 🔲 Botón "Usar salida como entrada" (encadenar operaciones)
-- 🔲 Botón "Abrir archivo" (soporte móvil)
-- 🔲 Validación en vivo con indicador ✓/✗
-- 🔲 Tema automático según el sistema (`prefers-color-scheme`)
-- 🔲 Recordar configuración (opt-in, 100% local)
+- ✅ Harness de tests de regresión (`tests.html`, solo desarrollo — 42 tests)
+- ✅ Botón "Reusar salida" (encadenar operaciones)
+- ✅ Botón "Abrir archivo" (soporte móvil, acepta .xml y .json)
+- ✅ Validación en vivo con indicador ✓/✗ y línea del error
+- ✅ Tema automático según el sistema (`prefers-color-scheme`)
+- ✅ Recordar configuración (opt-in, 100% local)
 
 ### v2.5 - "Power Tools" 📅 Q3 2026
 **Fecha estimada:** Agosto-Septiembre 2026
@@ -367,6 +370,17 @@ Para features más avanzadas, considera XMLShield Extended (v3.0+) o herramienta
 ---
 
 ## 📝 Changelog
+
+### v2.4 - Junio 2026
+- ✅ Bugfix: la declaración XML y los comentarios top-level ya no se pierden al formatear/minificar
+- ✅ Bugfix: el resaltado colorea los nombres de tags con atributos
+- ✅ Bugfix: minificar ya no altera el contenido de CDATA, comentarios ni texto con `=`
+- ✅ Suite de tests de regresión (`tests.html`, 42 casos, solo desarrollo)
+- ✅ Botón "Abrir archivo" (.xml/.json) — funciona en móvil
+- ✅ Botón "Reusar salida" para encadenar operaciones
+- ✅ Validación en vivo con línea y columna del error
+- ✅ Tema automático según `prefers-color-scheme`
+- ✅ Recordar configuración (opt-in con localStorage, 100% local)
 
 ### v2.3 - Junio 2026
 - ✅ Vista de árbol colapsable de solo lectura (tercer modo del botón de vista)
