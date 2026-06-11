@@ -176,8 +176,8 @@ Cada tema solo define variables CSS; las reglas compartidas las aplican. Combina
 
 ## 🎯 Versiones Planificadas
 
-### v2.4 - "Polish & Trust" 🔨 EN PROGRESO
-**Fecha estimada:** Junio-Julio 2026
+### v2.4 - "Polish & Trust" ✅ COMPLETADO
+**Fecha de release:** Junio 2026
 **Esfuerzo:** 1-2 semanas
 **Prioridad:** Alta
 
@@ -210,30 +210,30 @@ Suite de regresión sin frameworks que ejercita `prettyFormat`, `minify`, `xmlTo
 
 #### Quick Wins
 
-##### 5. Botón "Usar salida como entrada" 🔲
+##### 5. Botón "Reusar salida" (salida → entrada) ✅ IMPLEMENTADO
 **Complejidad:** Muy Baja | **Líneas:** ~15
 Encadenar operaciones (formatear → convertir → minificar) sin copiar/pegar a mano.
 
-##### 6. Botón "Abrir archivo" 🔲
-**Complejidad:** Muy Baja | **Líneas:** ~15
-`<input type="file">` además del drag & drop — imprescindible para móvil/tablet, donde no existe arrastrar y soltar.
+##### 6. Botón "Abrir archivo" ✅ IMPLEMENTADO
+**Complejidad:** Muy Baja | **Líneas:** ~20
+`<input type="file">` además del drag & drop — imprescindible para móvil/tablet, donde no existe arrastrar y soltar. Acepta `.xml` y `.json` (la conversión detecta la entrada). La carga se unificó en `loadFile()`, compartida con el drop.
 
-##### 7. Validación en vivo 🔲
+##### 7. Validación en vivo ✅ IMPLEMENTADO
 **Complejidad:** Baja | **Líneas:** ~30
-Indicador ✓/✗ con línea de error mientras se escribe (debounced), sin pulsar Formatear.
+Indicador ✓/✗ en el encabezado del panel de entrada mientras se escribe (debounce 400ms), con línea y columna del error. Detecta XML y JSON. Se pausa automáticamente sobre 2MB para no congelar la UI.
 
-##### 8. Tema automático (`prefers-color-scheme`) 🔲
+##### 8. Tema automático (`prefers-color-scheme`) ✅ IMPLEMENTADO
 **Complejidad:** Muy Baja | **Líneas:** ~5
-Arrancar en oscuro si el sistema operativo lo está.
+Arranca en oscuro si el sistema operativo lo está. Precedencia: sistema → preferencias guardadas → parámetros de URL.
 
-##### 9. Recordar configuración (opt-in) 🔲
-**Complejidad:** Baja | **Líneas:** ~20
-Checkbox explícito "recordar mis preferencias" con `localStorage`. 100% local y opt-in: no compromete la filosofía sin-tracking, pero se documenta visiblemente.
+##### 9. Recordar configuración (opt-in) ✅ IMPLEMENTADO
+**Complejidad:** Baja | **Líneas:** ~35
+Checkbox explícito "Recordar config" con `localStorage` (sangría, opciones, tema y vista). 100% local y opt-in: al desmarcarlo se borra todo. No compromete la filosofía sin-tracking y está documentado visiblemente en el tooltip y el README.
 
-#### Métricas Objetivo v2.4
-- **Tamaño:** ~55KB
-- **Líneas:** ~1600
-- **Tests:** 30+ casos de regresión pasando
+#### Métricas Alcanzadas v2.4
+- **Tamaño:** ~57KB
+- **Líneas:** ~1606
+- **Tests:** 42 casos de regresión pasando (37 de API + 5 de UI)
 
 ---
 
@@ -323,7 +323,7 @@ Reevaluado: era la feature v3.0 más alineada con los casos de uso documentados 
 │ v2.0 ✅  │ v2.1 ✅  │ v2.5 🔨  │ v2.6 🔨  │
 │          │ v2.2 ✅  │          │          │
 │          │ v2.3 ✅  │          │          │
-│          │ v2.4 🚧  │          │          │
+│          │ v2.4 ✅  │          │          │
 └──────────┴──────────┴──────────┴──────────┘
 ```
 
@@ -351,9 +351,9 @@ Reevaluado: era la feature v3.0 más alineada con los casos de uso documentados 
 
 ### v2.4 Success Criteria
 - [x] Los 3 bugs documentados corregidos con test de regresión cada uno
-- [x] Suite de tests con 30+ casos pasando (37/37)
+- [x] Suite de tests con 30+ casos pasando (42/42)
 - [x] Formatear/minificar conserva la declaración XML y comentarios top-level
-- [ ] Carga de archivos funcional en móvil (botón Abrir archivo)
+- [x] Carga de archivos funcional en móvil (botón Abrir archivo)
 
 ### v2.5 Success Criteria
 - [ ] XPath funcional con expresiones comunes (`//tag`, `//tag[@attr='x']`, `count()`)
@@ -386,7 +386,7 @@ Reevaluado: era la feature v3.0 más alineada con los casos de uso documentados 
 | v2.1 | 100% | 5/5 | ~1100 | ~35KB | ✅ Released |
 | v2.2 | 100% | 4/4 | ~1300 | ~43KB | ✅ Released |
 | v2.3 | 100% | 3/3 | ~1470 | ~50KB | ✅ Released |
-| v2.4 | 45% | 4/9 | ~1600 | ~55KB | 🔨 En progreso |
+| v2.4 | 100% | 9/9 | ~1606 | ~57KB | ✅ Released |
 | v2.5 | 0% | 0/4 | ~1900 est. | ~65KB est. | 📅 Q3 2026 |
 | v2.6 | 0% | 0/1 | ~2500 est. | ~80KB est. | 📅 Q4 2026 |
 

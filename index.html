@@ -101,6 +101,8 @@
   #download { background: var(--orange); color: #fff; }
   #clear { background: #e74c3c; color: #fff; }
   #conv { background: #14919b; color: #fff; }
+  #open { background: #34495e; color: #fff; }
+  #useOut { background: #0e7490; color: #fff; }
   #toggleView { background: var(--purple); color:#fff; }
 
   .controls select {
@@ -342,7 +344,15 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
     border-bottom: 2px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
   }
+
+  /* Indicador de validación en vivo (panel de entrada) */
+  #liveStatus { text-transform: none; letter-spacing: 0; white-space: nowrap; }
+  #liveStatus.ok  { color: #6ee7a8; }
+  #liveStatus.bad { color: #fda4af; }
 
   body.dark .panel-header {
     background: #1a1a1a;
@@ -562,9 +572,11 @@
     <h2>🛡️ XMLShield • Your Local XML Fortress</h2>
 
     <div class="controls">
+      <button id="open" title="Abre un archivo .xml o .json desde tu equipo">📂 Abrir</button>
       <button id="fmt" title="Ctrl+Enter">✨ Formatear</button>
       <button id="min" title="Ctrl+M">📦 Minificar</button>
       <button id="conv" title="Detecta la entrada: XML→JSON o JSON→XML">🔁 XML ⇄ JSON</button>
+      <button id="useOut" title="Usa la salida actual como nueva entrada para encadenar operaciones">⬆️ Reusar salida</button>
       <button id="toggleView" title="Ctrl+B — alterna Resaltada / Texto / Árbol">👁️ Vista: Resaltada</button>
       <button id="copy">📋 Copiar</button>
       <select id="copyAs" title="Formato al copiar la salida">
@@ -608,6 +620,9 @@
       <span id="searchCount"></span>
       <span class="sep">|</span>
       <button class="search-nav" id="shareCfg" title="Copia un enlace con la configuración actual (sangría, tema, vista...)">🔗 Copiar config</button>
+      <label title="Guarda sangría, opciones, tema y vista en este navegador (localStorage). Nada sale de tu equipo; desmárcalo y se borra.">
+        <input id="remember" type="checkbox"> Recordar config
+      </label>
     </div>
 
     <div class="kpi-row">
@@ -629,7 +644,7 @@
 
   <div class="workspace">
     <div class="panel">
-      <div class="panel-header">📝 Entrada XML (arrastra archivo o pega texto)</div>
+      <div class="panel-header"><span>📝 Entrada XML (arrastra, abre o pega)</span><span id="liveStatus"></span></div>
       <div class="editor-wrap">
         <div class="gutter" id="gutterIn">1</div>
         <textarea id="in" wrap="off" placeholder="Pega aquí tu XML o arrastra un archivo .xml..."></textarea>
@@ -647,6 +662,8 @@
     </div>
   </div>
 </div>
+
+<input type="file" id="fileInput" accept=".xml,.json,text/xml,application/xml,application/json" style="display:none">
 
 <!-- Loading Overlay -->
 <div id="loading-overlay">
@@ -721,6 +738,7 @@
     inTa.value = undoStack.pop();
     updateKPIs(inTa.value, lastOutputText);
     updateGutter(gutterIn, inTa.value);
+    liveValidate();
   }
   function applyRedo() {
     if (!redoStack.length) return;
@@ -728,6 +746,7 @@
     inTa.value = redoStack.pop();
     updateKPIs(inTa.value, lastOutputText);
     updateGutter(gutterIn, inTa.value);
+    liveValidate();
   }
 
   // --- Loading overlay ---
@@ -795,6 +814,7 @@
   function setView(mode){
     setViewNoRender(mode);
     renderOutput(lastOutputText);
+    savePrefs();
   }
 
   function setDisableToggleView(disable, reason=""){
@@ -1191,6 +1211,36 @@
     $("#themeSel").value = name;
   }
 
+  // --- Recordar configuración (opt-in con localStorage, 100% local) ---
+  const PREFS_KEY = "xmlshield-prefs";
+  function savePrefs(){
+    if (!$("#remember").checked) { localStorage.removeItem(PREFS_KEY); return; }
+    localStorage.setItem(PREFS_KEY, JSON.stringify({
+      indent: $("#indent").value,
+      tabs: $("#tabs").checked,
+      preserve: $("#preserve").checked,
+      keepws: $("#keepTextWS").checked,
+      compact: $("#compactAttrs").checked,
+      theme: $("#themeSel").value,
+      view: viewMode
+    }));
+  }
+  function loadPrefs(){
+    let p;
+    try { p = JSON.parse(localStorage.getItem(PREFS_KEY)); } catch {}
+    if (!p) return;
+    $("#remember").checked = true;
+    if (p.indent !== undefined) $("#indent").value = p.indent;
+    $("#tabs").checked = !!p.tabs;
+    $("#preserve").checked = !!p.preserve;
+    $("#keepTextWS").checked = !!p.keepws;
+    $("#compactAttrs").checked = !!p.compact;
+    if (p.theme) applyTheme(p.theme);
+    if (VIEW_ORDER.includes(p.view)) viewMode = p.view;
+  }
+  ["#indent", "#tabs", "#preserve", "#keepTextWS", "#compactAttrs", "#remember"]
+    .forEach(s => $(s).addEventListener("change", savePrefs));
+
   // --- Presets de configuración vía URL ---
   // Ej.: ?indent=4&tabs=0&preserve=1&keepws=1&compact=1&theme=monokai&view=arbol
   function applyURLPreset(){
@@ -1382,6 +1432,8 @@
     updateGutter(gutterIn, "");
     updateGutter(gutterOut, "");
     $("#searchCount").textContent = "";
+    $("#liveStatus").textContent = "";
+    $("#liveStatus").className = "";
     setDisableToggleView(false);
     setViewNoRender(viewMode);
     const btn = $("#clear");
@@ -1391,7 +1443,7 @@
     inTa.focus();
   };
 
-  $("#themeSel").onchange = e => applyTheme(e.target.value);
+  $("#themeSel").onchange = e => { applyTheme(e.target.value); savePrefs(); };
 
   $("#toggleView").onclick = async () => {
     const input = inTa.value;
@@ -1416,10 +1468,13 @@
     }, 80);
   };
 
-  // KPIs y líneas numeradas en vivo al escribir/pegar
+  // KPIs, líneas numeradas y validación en vivo al escribir/pegar
+  let liveTimer;
   inTa.addEventListener("input", () => {
     updateKPIs(inTa.value, lastOutputText);
     updateGutter(gutterIn, inTa.value);
+    clearTimeout(liveTimer);
+    liveTimer = setTimeout(liveValidate, 400);
   });
 
   // Drag & drop de archivos XML al panel de entrada
@@ -1429,11 +1484,8 @@
   ;["dragleave","drop"].forEach(ev => inTa.addEventListener(ev, e=>{
     e.preventDefault(); inTa.classList.remove("drop");
   }));
-  inTa.addEventListener("drop", async e => {
-    const f = e.dataTransfer.files && e.dataTransfer.files[0];
-    if (!f) return;
-    if (!/\.xml$/i.test(f.name)) { showError("⚠️ Arrastra un archivo .xml"); return; }
-
+  // Carga compartida por drag & drop y el botón "Abrir"
+  async function loadFile(f) {
     // 1. Mostrar loading ANTES de leer el archivo
     const fileMB = (f.size / (1024 * 1024)).toFixed(1);
     const sub = f.size > 10 * 1024 * 1024
@@ -1459,12 +1511,67 @@
       updateKPIs(inTa.value, lastOutputText);
       updateGutter(gutterIn, txt);
       clearError();
+      liveValidate();
     } catch(err) {
       showError(`❌ Error al leer el archivo: ${err.message}`);
     } finally {
       hideLoading();
     }
+  }
+
+  inTa.addEventListener("drop", e => {
+    const f = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (!f) return;
+    if (!/\.(xml|json)$/i.test(f.name)) { showError("⚠️ Arrastra un archivo .xml o .json"); return; }
+    loadFile(f);
   });
+
+  $("#open").onclick = () => $("#fileInput").click();
+  $("#fileInput").addEventListener("change", e => {
+    const f = e.target.files && e.target.files[0];
+    if (f) loadFile(f);
+    e.target.value = ""; // permite volver a abrir el mismo archivo
+  });
+
+  $("#useOut").onclick = () => {
+    if (!lastOutputText) {
+      showError("⚠️ No hay salida que reusar. Formatea, minifica o convierte primero.");
+      return;
+    }
+    saveForUndo();
+    inTa.value = lastOutputText;
+    updateKPIs(inTa.value, lastOutputText);
+    updateGutter(gutterIn, inTa.value);
+    clearError();
+    liveValidate();
+    const btn = $("#useOut");
+    const label = btn.textContent;
+    btn.textContent = "✅ ¡Copiada!";
+    setTimeout(() => btn.textContent = label, 1200);
+  };
+
+  // --- Validación en vivo (✓/✗ en el panel de entrada, debounced) ---
+  function liveValidate() {
+    const el = $("#liveStatus");
+    const v = inTa.value;
+    el.className = "";
+    if (!v.trim()) { el.textContent = ""; return; }
+    // Archivos muy grandes: validar en cada tecla congelaría la UI
+    if (v.length > 2 * 1024 * 1024) { el.textContent = "⏸ validación pausada (archivo grande)"; return; }
+    if (/^[\[{]/.test(v.trimStart())) {
+      try { JSON.parse(v); el.textContent = "✓ JSON válido"; el.className = "ok"; }
+      catch { el.textContent = "✗ JSON inválido"; el.className = "bad"; }
+      return;
+    }
+    const doc = new DOMParser().parseFromString(v, "application/xml");
+    if (doc.querySelector("parsererror")) {
+      el.textContent = "✗ " + parseXMLError(doc).replace("❌ ", "");
+      el.className = "bad";
+    } else {
+      el.textContent = "✓ XML válido";
+      el.className = "ok";
+    }
+  }
 
   // Atajos: Ctrl+Enter (Formatear), Ctrl+M (Minificar), Ctrl+B (Vista), Ctrl+G (Ir a línea), Ctrl+Z/Y (Undo/Redo)
   document.addEventListener("keydown", e=>{
@@ -1477,7 +1584,12 @@
     if (e.ctrlKey && e.key.toLowerCase() === "y" && document.activeElement !== inTa){ e.preventDefault(); applyRedo(); }
   });
 
-  // Configuración inicial: presets vía URL y vista por defecto (Resaltada)
+  // Configuración inicial, en orden de precedencia creciente:
+  // tema del sistema → preferencias guardadas → parámetros de la URL
+  if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    applyTheme("oscuro");
+  }
+  loadPrefs();
   applyURLPreset();
   setView(viewMode);
   updateKPIs("", "");
