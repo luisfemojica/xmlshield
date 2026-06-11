@@ -5,7 +5,7 @@
 XMLShield está diseñado con seguridad desde su núcleo:
 - 100% local - Sin envío de datos
 - Cero dependencias - Sin código de terceros  
-- Auditable - ~500 líneas de código visible
+- Auditable - ~1500 líneas de código visible en un solo archivo
 
 ## Reportar Vulnerabilidades
 

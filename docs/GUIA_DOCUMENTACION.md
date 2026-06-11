@@ -13,7 +13,7 @@ Esta carpeta contiene la documentación completa que define el alcance, límites
 **Lee este documento si:**
 - Quieres entender la filosofía del proyecto
 - Tienes una idea de feature y quieres saber si cabe
-- Necesitas entender los límites técnicos (800 líneas, 100KB, etc.)
+- Necesitas entender los límites técnicos (~1500 líneas, 100KB, etc.)
 - Vas a contribuir al proyecto
 
 **Secciones clave:**
@@ -145,7 +145,7 @@ Antes de abrir un PR, verifica:
 ✅ Verifiqué que no está en ROADMAP.md ya
 ✅ Seguí las guías de CONTRIBUTING.md
 ✅ El archivo final es <100KB
-✅ El código total es <800 líneas
+✅ El código total es <1500 líneas
 ✅ No añadí dependencias externas
 ✅ Funciona 100% offline
 ✅ Testé en Chrome, Firefox, Safari

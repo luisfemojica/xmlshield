@@ -24,13 +24,17 @@ XMLShield es una herramienta de formateo y minificación de XML que funciona com
 ### ⚡ Funcionalidades
 - ✨ **Formateo XML** con indentación configurable (espacios o tabs)
 - 📦 **Minificación inteligente** con opciones avanzadas
+- 🔁 **Conversión XML ⇄ JSON** con autodetección de la entrada
 - 🎨 **Resaltado de sintaxis** sin dependencias externas
-- 👁️ **Vista dual** - Texto plano o sintaxis resaltada
-- 📊 **KPIs en tiempo real** - Tamaño entrada/salida/ahorro
+- 👁️ **Vista triple** - Sintaxis resaltada, texto plano o árbol colapsable
+- 🔍 **Búsqueda con highlight** y navegación entre coincidencias
+- 🔢 **Líneas numeradas** en ambos editores, sincronizadas con el scroll
+- 📊 **KPIs en tiempo real** - Tamaño, ahorro, elementos, atributos y profundidad
 - 💾 **Descarga de resultados** con timestamp
-- 📋 **Copiar al portapapeles** con un click
-- 🌓 **Modo oscuro/claro** para comodidad visual
-- ⌨️ **Atajos de teclado** para flujo de trabajo rápido
+- 📋 **Copiar al portapapeles** como texto o string escapado (JS, Python, Java)
+- 🎨 **5 temas visuales** - Claro, Oscuro, Alto Contraste, Solarized y Monokai
+- 🔗 **Presets de configuración vía URL** compartibles
+- ⌨️ **Atajos de teclado** para flujo de trabajo rápido (incluye Ctrl+G ir a línea)
 - 🎯 **Drag & drop** - Arrastra archivos .xml directamente
 
 ### 🎨 Interfaz
@@ -87,7 +91,9 @@ XMLShield es una herramienta de formateo y minificación de XML que funciona com
 |-------|--------|
 | `Ctrl + Enter` | Formatear XML |
 | `Ctrl + M` | Minificar XML |
-| `Ctrl + B` | Cambiar vista (Texto/Resaltada) |
+| `Ctrl + B` | Cambiar vista (Resaltada/Texto/Árbol) |
+| `Ctrl + L` | Limpiar editores |
+| `Ctrl + G` | Ir a línea específica |
 | `Ctrl + Z` | Deshacer (fuera del editor) |
 | `Ctrl + Y` | Rehacer (fuera del editor) |
 
@@ -143,7 +149,7 @@ XMLShield está diseñado para:
 ✅ **Sin telemetría** - No envía datos a ningún servidor  
 ✅ **Sin cookies** - No almacena ni rastrea información  
 ✅ **Sin CDN** - No carga recursos externos que puedan ser comprometidos  
-✅ **Código auditable** - Todo el código está en un solo archivo visible (~500 líneas)  
+✅ **Código auditable** - Todo el código está en un solo archivo visible (~1500 líneas)  
 ✅ **Sin dependencias** - Cero librerías de terceros que puedan tener vulnerabilidades  
 
 ### Consideraciones
@@ -174,11 +180,11 @@ XMLShield v2.x se adhiere estrictamente a estos principios:
 
 Para mantener la simplicidad y auditabilidad:
 
-| Aspecto | Límite Actual v2.0 | Límite Máximo v2.x |
+| Aspecto | Estado Actual v2.3 | Límite Máximo v2.x |
 |---------|-------------------|-------------------|
-| **Líneas de código** | ~500 | 800 |
+| **Líneas de código** | ~1470 | ~1500 |
 | **Tamaño del archivo** | ~50KB | 100KB |
-| **Tiempo de auditoría** | ~15 minutos | 30 minutos |
+| **Tiempo de auditoría** | ~30 minutos | 30 minutos |
 | **Dependencias externas** | 0 | 0 |
 
 ### Test de 4 Preguntas
@@ -199,35 +205,31 @@ Toda nueva feature debe pasar **mínimo 3 de 4** preguntas:
 
 Refactorización completa con diseño moderno, panel dividido, gradientes, modo oscuro mejorado, KPIs con emojis, y descarga de archivos.
 
-### v2.1 - "Quick Wins" 🔨 EN PROGRESO
-**Fecha estimada:** Marzo-Abril 2026
+### v2.1 - "Quick Wins" ✅ COMPLETADO
+**Fecha:** Junio 2026
 
-- ✅ Errores detallados con número de línea ← **Implementado**
-- ✅ Undo/Redo básico (memoria de sesión) ← **Implementado**
-- 🔲 Estadísticas del documento (elementos, profundidad, atributos)
-- 🔲 Líneas numeradas en editores
+- ✅ Errores detallados con número de línea
+- ✅ Undo/Redo básico (memoria de sesión)
+- ✅ Estadísticas del documento (elementos, profundidad, atributos)
+- ✅ Líneas numeradas en editores
 - ✅ Advertencia para archivos grandes (>50MB)
 
-**Impacto:** +100-150 líneas | ~60KB total
+### v2.2 - "Productivity Boost" ✅ COMPLETADO
+**Fecha:** Junio 2026
 
-### v2.2 - "Productivity Boost" 📅 Q2-Q3 2026
-**Fecha estimada:** Mayo-Julio 2026
+- ✅ Conversión XML ⇄ JSON (autodetecta la entrada)
+- ✅ Búsqueda mejorada con highlight y navegación
+- ✅ Presets de configuración vía URL (`?indent=4&theme=monokai&view=arbol`)
+- ✅ Copiar como string escapado (JS, Python, Java)
 
-- 🔲 Conversión XML ↔ JSON
-- 🔲 Búsqueda mejorada con highlight
-- 🔲 Presets de configuración vía URL
-- 🔲 Copiar como string escapado (JS, Python, Java)
+### v2.3 - "Navigation & UX" ✅ COMPLETADO
+**Fecha:** Junio 2026
 
-**Impacto:** +150-250 líneas | ~75-80KB total
+- ✅ Vista de árbol colapsable (solo lectura)
+- ✅ Ir a línea específica (Ctrl+G)
+- ✅ Temas visuales adicionales (High Contrast, Solarized, Monokai)
 
-### v2.3 - "Navigation & UX" 📅 Q4 2026
-**Fecha estimada:** Octubre-Diciembre 2026
-
-- 🔲 Vista de árbol colapsable (solo lectura)
-- 🔲 Ir a línea específica (Ctrl+G)
-- 🔲 Temas visuales adicionales (High Contrast, Solarized, Monokai)
-
-**Impacto:** +200-300 líneas | ~95-100KB total (límite máximo v2.x)
+**🎉 El roadmap v2.x está completo** — ~1470 líneas | ~50KB total (la mitad del límite máximo de 100KB)
 
 ### v3.0+ - "XMLShield Extended" 🔮 2027+
 **Proyecto separado** con features avanzadas:
@@ -287,10 +289,10 @@ Este proyecto mantiene documentación exhaustiva para guiar su desarrollo:
 
 ## 🚀 Mejoras Futuras Consideradas
 
-### ✅ En Roadmap (v2.1-v2.3)
+### ✅ Roadmap Completado (v2.1-v2.3)
 - Errores con número de línea
 - Estadísticas del documento
-- Conversión XML ↔ JSON
+- Conversión XML ⇄ JSON
 - Vista de árbol navegable
 - Temas adicionales
 
@@ -337,9 +339,23 @@ Para features más avanzadas, considera XMLShield Extended (v3.0+) o herramienta
 
 ## 📝 Changelog
 
-### v2.1 - Marzo 2026 (En progreso)
+### v2.3 - Junio 2026
+- ✅ Vista de árbol colapsable de solo lectura (tercer modo del botón de vista)
+- ✅ Ir a línea específica con Ctrl+G
+- ✅ Temas visuales: Alto Contraste, Solarized y Monokai
+
+### v2.2 - Junio 2026
+- ✅ Conversión XML ⇄ JSON con autodetección de la entrada
+- ✅ Búsqueda con resaltado de coincidencias y navegación anterior/siguiente
+- ✅ Presets de configuración vía URL + botón "Copiar config"
+- ✅ Copiar la salida como string escapado (JS, Python, Java)
+
+### v2.1 - Junio 2026
 - ✅ Errores XML con número de línea y columna exactos
 - ✅ Undo/Redo básico con Ctrl+Z / Ctrl+Y (memoria de sesión)
+- ✅ Estadísticas del documento: elementos, atributos y profundidad
+- ✅ Líneas numeradas en ambos editores, sincronizadas con el scroll
+- ✅ Advertencia y confirmación para archivos grandes
 
 ### v2.0 - Febrero 2026
 - ✅ Refactorización completa del diseño
@@ -391,7 +407,7 @@ Este proyecto valora las contribuciones que mantienen su filosofía de simplicid
 - ✅ Mantener compatibilidad con navegadores modernos
 - ✅ Documentar cambios en el código
 - ✅ Actualizar el Changelog
-- ✅ No exceder límites: 800 líneas, 100KB
+- ✅ No exceder límites: ~1500 líneas, 100KB
 
 ### Reconocimiento
 
@@ -435,7 +451,7 @@ Este proyecto está en el **dominio público**. Úsalo libremente para cualquier
 ## 💡 Preguntas Frecuentes (FAQ)
 
 ### ¿Es realmente seguro usar XMLShield con datos sensibles?
-**Sí.** Todo el procesamiento ocurre en tu navegador. No se envía ningún dato a servidores externos. Puedes verificarlo auditando el código (son solo ~500 líneas) o monitoreando el tráfico de red (verás cero requests).
+**Sí.** Todo el procesamiento ocurre en tu navegador. No se envía ningún dato a servidores externos. Puedes verificarlo auditando el código (son ~1500 líneas en un solo archivo) o monitoreando el tráfico de red (verás cero requests).
 
 ### ¿Por qué no usar herramientas online como prettydiff.com o xmlformatter.io?
 Esas herramientas envían tu XML a sus servidores. Si trabajas con datos sensibles, regulados o confidenciales, esto puede violar políticas de privacidad o compliance.

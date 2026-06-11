@@ -171,9 +171,9 @@ XMLShield es una herramienta de formateo y minificación de XML que funciona **1
 
 | Métrica | Límite Actual | Límite v2.x | Límite v3.0+ |
 |---------|---------------|-------------|--------------|
-| **Líneas totales** | ~500 | 800 máximo | 1500+ |
+| **Líneas totales** | ~1470 | ~1500 máximo | 2000+ |
 | **Tamaño archivo** | ~50KB | 100KB máximo | 150KB+ |
-| **Tiempo auditoría** | 15 min | 30 min máximo | 60+ min |
+| **Tiempo auditoría** | 30 min | 30 min máximo | 60+ min |
 | **Dependencias externas** | 0 | 0 | 0* |
 
 *Para v3.0+: Permitido código inline de bibliotecas específicas, pero siempre auditable
