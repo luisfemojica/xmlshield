@@ -6,6 +6,7 @@
 <title>XMLShield - Your Local XML Fortress</title>
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
 <!-- Open Graph / Social Media -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://luisfemojica.github.io/xmlshield/">
@@ -362,6 +363,23 @@
   #liveStatus.ok  { color: #6ee7a8; }
   #liveStatus.bad { color: #fda4af; }
 
+  /* Lado derecho del encabezado del panel: botón Ejemplo + validación */
+  .ph-right {
+    display: inline-flex;
+    gap: 0.6rem;
+    align-items: center;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .panel-header button.mini {
+    padding: 0.1rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 5px;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.25);
+  }
+
   body.dark .panel-header {
     background: #1a1a1a;
     border-bottom-color: var(--border-dark);
@@ -445,13 +463,18 @@
   body.dark .syntax .symbol { color: #BBBBBB; }
 
   @media (max-width: 968px) {
-      .workspace {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);  /* minmax evita que se compriman */
-    gap: 0;
-    flex: 1;
-    overflow: hidden;
-  }
+    /* En móvil la página entera hace scroll: el header es más alto que el
+       viewport, así que un layout 100vh dejaría los editores sin altura */
+    .container { height: auto; min-height: 100vh; }
+
+    /* Paneles apilados a ancho completo, con altura fija usable */
+    .workspace {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: none;
+      flex: none;
+      overflow: visible;
+    }
+    .panel { height: 70vh; }
 
     .panel {
       border-right: none;
@@ -462,14 +485,13 @@
       border-bottom-color: var(--border-dark);
     }
 
-    .controls {
-      flex-direction: column;
-      align-items: stretch;
-    }
-
-    button {
-      width: 100%;
+    /* Controles en dos columnas en vez de una pila a pantalla completa */
+    .controls { gap: 0.5rem; }
+    .controls button, .controls select {
+      flex: 1 1 40%;
       justify-content: center;
+      padding: 0.5rem 0.6rem;
+      font-size: 0.8rem;
     }
   }
 
@@ -526,6 +548,12 @@
     white-space: pre;
   }
   body.dark .gutter { border-right-color: var(--border-dark); }
+  .gutter .errline {
+    background: #e74c3c;
+    color: #fff;
+    border-radius: 3px;
+    padding: 0 3px;
+  }
 
   /* ============================================================
      VISTA DE ÁRBOL COLAPSABLE (solo lectura)
@@ -538,6 +566,9 @@
   .tree summary:hover { background: rgba(127,127,127,0.12); }
   .tree .tree-leaf { padding-left: 2.2rem; }
   .tree .txt { color: var(--syn-value); }
+  .tree .tree-count { color: #888; font-size: 0.8em; }
+  .tree .tag.xp { cursor: pointer; }
+  .tree .tag.xp:hover { text-decoration: underline; }
 
   /* ============================================================
      BÚSQUEDA CON HIGHLIGHT
@@ -677,9 +708,9 @@
     </div>
 
     <div class="kpi-row">
-      <span>📥 Entrada: <strong class="kpi" id="inSize">0</strong> bytes</span>
+      <span>📥 Entrada: <strong class="kpi" id="inSize">0 B</strong></span>
       <span class="sep">•</span>
-      <span>📤 Salida: <strong class="kpi" id="outSize">0</strong> bytes</span>
+      <span>📤 Salida: <strong class="kpi" id="outSize">0 B</strong></span>
       <span class="sep">•</span>
       <span>💰 Ahorro: <strong class="kpi" id="savings">0%</strong></span>
       <span class="sep">•</span>
@@ -695,7 +726,7 @@
 
   <div class="workspace">
     <div class="panel">
-      <div class="panel-header"><span>📝 Entrada XML (arrastra, abre o pega)</span><span id="liveStatus"></span></div>
+      <div class="panel-header"><span>📝 Entrada XML (arrastra, abre o pega)</span><span class="ph-right"><span id="liveStatus"></span><button id="demo" class="mini" title="Carga un XML de ejemplo y lo formatea">📄 Ejemplo</button></span></div>
       <div class="editor-wrap">
         <div class="gutter" id="gutterIn">1</div>
         <textarea id="in" wrap="off" placeholder="Pega aquí tu XML o arrastra un archivo .xml..."></textarea>
@@ -756,10 +787,15 @@
 
   // --- Utilidades ---
   function bytesOf(str){ return new Blob([str]).size; }
+  function fmtBytes(n){
+    if (n < 1024) return n + " B";
+    if (n < 1024 * 1024) return (n / 1024).toFixed(1) + " KB";
+    return (n / (1024 * 1024)).toFixed(1) + " MB";
+  }
   function updateKPIs(input, output){
-    $("#inSize").textContent = bytesOf(input);
-    $("#outSize").textContent = bytesOf(output);
     const i = bytesOf(input), o = bytesOf(output);
+    $("#inSize").textContent = fmtBytes(i);
+    $("#outSize").textContent = fmtBytes(o);
     const save = i ? Math.max(0, Math.round((1 - o / i) * 100)) : 0;
     $("#savings").textContent = isFinite(save) ? `${save}%` : "0%";
   }
@@ -1125,6 +1161,22 @@
   syncGutter(outTa, gutterOut);
   syncGutter(outHtmlWrap, gutterOut);
 
+  // Marca la línea con error de la validación en vivo en el gutter de entrada
+  function markGutterErrorLine(line){
+    const total = inTa.value.split("\n").length;
+    if (gutterIn.style.display === "none" || !line || line < 1 || line > total) return;
+    let html = "";
+    for (let i = 1; i <= total; i++) html += (i === line ? `<span class="errline">${i}</span>` : i) + "\n";
+    gutterIn.innerHTML = html;
+    gutterLines.set(gutterIn, -1); // invalida la caché: el próximo update reconstruye limpio
+  }
+  function clearGutterErrorLine(){
+    if (gutterLines.get(gutterIn) === -1) updateGutter(gutterIn, inTa.value);
+  }
+
+  // --- XML de ejemplo (botón 📄 Ejemplo y preset ?demo=1) ---
+  const DEMO_XML = '<?xml version="1.0" encoding="UTF-8"?><!-- Biblioteca de ejemplo — XMLShield --><biblioteca nombre="Central" ciudad="Madrid"><libro id="L-001" categoria="novela"><titulo>Cien años de soledad</titulo><autor>Gabriel García Márquez</autor><anio>1967</anio><precio moneda="EUR">19.95</precio></libro><libro id="L-002" categoria="ensayo"><titulo>El laberinto de la soledad</titulo><autor>Octavio Paz</autor><anio>1950</anio><precio moneda="MXN">250.00</precio></libro><resena libro="L-001"><![CDATA[Una obra maestra del realismo mágico: «familia & destino».]]></resena></biblioteca>';
+
   // --- Conversión XML ⇄ JSON ---
   // Convención: atributos como "@nombre", texto mixto como "#text",
   // elementos repetidos se agrupan en arrays.
@@ -1337,11 +1389,12 @@
   }
 
   // --- Vista de árbol colapsable (solo lectura, con <details> nativo) ---
-  function treeNodeHTML(el){
+  // Cada nombre de tag lleva su ruta XPath (data-xp); click → campo XPath
+  function treeNodeHTML(el, path){
     let attrs = "";
     for (const a of el.attributes)
       attrs += ` <span class="attr">${escapeHTML(a.name)}</span>=<span class="value">"${escapeHTML(a.value)}"</span>`;
-    const name = `<span class="tag">${escapeHTML(el.nodeName)}</span>`;
+    const name = `<span class="tag xp" data-xp="${escapeHTML(path)}" title="Click: usar esta ruta en el campo XPath">${escapeHTML(el.nodeName)}</span>`;
     let text = "";
     for (const ch of el.childNodes)
       if (ch.nodeType === Node.TEXT_NODE || ch.nodeType === Node.CDATA_SECTION_NODE) text += ch.nodeValue;
@@ -1349,17 +1402,34 @@
     const textHTML = text ? ` <span class="txt">${escapeHTML(text)}</span>` : "";
     if (!el.children.length)
       return `<div class="tree-leaf">&lt;${name}${attrs}&gt;${textHTML}</div>`;
+    // Índice [n] solo cuando hay hermanos repetidos del mismo nombre
+    const counts = {}, seen = {};
+    for (const ch of el.children) counts[ch.nodeName] = (counts[ch.nodeName] || 0) + 1;
     let kids = "";
-    for (const ch of el.children) kids += treeNodeHTML(ch);
-    return `<details open><summary>&lt;${name}${attrs}&gt;${textHTML}</summary>${kids}</details>`;
+    for (const ch of el.children) {
+      seen[ch.nodeName] = (seen[ch.nodeName] || 0) + 1;
+      const cpath = `${path}/${ch.nodeName}` + (counts[ch.nodeName] > 1 ? `[${seen[ch.nodeName]}]` : "");
+      kids += treeNodeHTML(ch, cpath);
+    }
+    const countHTML = ` <span class="tree-count">· ${el.children.length} hijo(s)</span>`;
+    return `<details open><summary>&lt;${name}${attrs}&gt;${textHTML}${countHTML}</summary>${kids}</details>`;
   }
   function buildTreeHTML(xml){
     if (!xml.trim()) return "";
     const doc = new DOMParser().parseFromString(xml, "application/xml");
     if (doc.querySelector("parsererror"))
       return `<div class="tree-leaf">⚠️ La salida actual no es XML válido — formatea primero para ver el árbol.</div>`;
-    return treeNodeHTML(doc.documentElement);
+    return treeNodeHTML(doc.documentElement, "/" + doc.documentElement.nodeName);
   }
+  // Click en un nombre de tag del árbol → usa su ruta en el campo XPath
+  outTree.addEventListener("click", e => {
+    const t = e.target.closest(".xp");
+    if (!t) return;
+    e.preventDefault(); // no colapsar/expandir el nodo al copiar la ruta
+    $("#xpath").value = t.dataset.xp;
+    $("#xpathCount").textContent = "ruta copiada al campo XPath";
+    if (navigator.clipboard) navigator.clipboard.writeText(t.dataset.xp).catch(() => {});
+  });
 
   // --- Búsqueda con highlight en la salida (máx. 500 marcas) ---
   let searchHits = [], searchIdx = -1;
@@ -1488,6 +1558,11 @@
     const v = p.get("view");
     if (v === "texto") viewMode = "txt";
     else if (v === "arbol") viewMode = "tree";
+    // ?demo=1 carga el XML de ejemplo y lo formatea (también para capturas)
+    if (p.get("demo") === "1") {
+      inTa.value = DEMO_XML;
+      setTimeout(() => { inTa.dispatchEvent(new Event("input")); $("#fmt").click(); }, 60);
+    }
   }
 
   // --- Ir a línea específica (Ctrl+G) ---
@@ -1522,10 +1597,18 @@
 
     setTimeout(() => {
       try {
-        const indent = +$("#indent").value || 0;
-        const indentChars = $("#tabs").checked ? "\t" : " ".repeat(indent);
-        const preserve = $("#preserve").checked;
-        const output = prettyFormat(input, indentChars, preserve, $("#sortAttrs").checked);
+        let output;
+        if (/^[\[{]/.test(input.trim())) {
+          // La entrada es JSON: embellecerlo directamente
+          try { output = JSON.stringify(JSON.parse(input), null, $("#tabs").checked ? "\t" : (+$("#indent").value || 2)); }
+          catch(e) { throw new Error("❌ JSON inválido: " + e.message); }
+          resetStats();
+        } else {
+          const indent = +$("#indent").value || 0;
+          const indentChars = $("#tabs").checked ? "\t" : " ".repeat(indent);
+          const preserve = $("#preserve").checked;
+          output = prettyFormat(input, indentChars, preserve, $("#sortAttrs").checked);
+        }
         renderOutput(output);
       } catch(e) {
         showError(e.message);
@@ -1549,12 +1632,20 @@
 
     setTimeout(() => {
       try {
-        const output = minify(input, {
-          keepTextWS: $("#keepTextWS").checked,
-          compactAttrs: $("#compactAttrs").checked,
-          dropComments: $("#dropComments").checked,
-          sortAttrs: $("#sortAttrs").checked
-        });
+        let output;
+        if (/^[\[{]/.test(input.trim())) {
+          // La entrada es JSON: compactarlo directamente
+          try { output = JSON.stringify(JSON.parse(input)); }
+          catch(e) { throw new Error("❌ JSON inválido: " + e.message); }
+          resetStats();
+        } else {
+          output = minify(input, {
+            keepTextWS: $("#keepTextWS").checked,
+            compactAttrs: $("#compactAttrs").checked,
+            dropComments: $("#dropComments").checked,
+            sortAttrs: $("#sortAttrs").checked
+          });
+        }
         renderOutput(output);
       } catch(e) {
         showError(e.message);
@@ -1686,7 +1777,7 @@
       setViewNoRender("txt");
       setDisableToggleView(true, "Comparando");
       outTa.value = "";
-      outTa.placeholder = "Pega aquí el XML B y vuelve a pulsar el botón...";
+      outTa.placeholder = "Pega aquí el XML B (o arrastra/abre un archivo) y vuelve a pulsar el botón...";
       $("#cmp").textContent = "🆚 Ejecutar diff";
       $("#outHeader").textContent = "🆚 XML B — pega aquí el documento a comparar";
       outTa.focus();
@@ -1839,8 +1930,9 @@
   ;["dragleave","drop"].forEach(ev => inTa.addEventListener(ev, e=>{
     e.preventDefault(); inTa.classList.remove("drop");
   }));
-  // Carga compartida por drag & drop y el botón "Abrir"
-  async function loadFile(f) {
+  // Carga compartida por drag & drop y el botón "Abrir".
+  // Con intoB=true el archivo va al panel derecho (XML B del modo comparar).
+  async function loadFile(f, intoB = false) {
     // 1. Mostrar loading ANTES de leer el archivo
     const fileMB = (f.size / (1024 * 1024)).toFixed(1);
     const sub = f.size > 10 * 1024 * 1024
@@ -1851,6 +1943,11 @@
     try {
       // 2. Leer el archivo (async — el loading ya es visible)
       const txt = await f.text();
+
+      if (intoB) {
+        outTa.value = txt;
+        return;
+      }
 
       // 3. Verificar tamaño
       const sizeCheck = await checkFileSizeWithOutConfirm(txt);
@@ -1881,10 +1978,26 @@
     loadFile(f);
   });
 
+  // En modo comparar, el panel derecho también acepta arrastrar el XML B
+  ;["dragenter","dragover"].forEach(ev => outTa.addEventListener(ev, e => {
+    if (!compareMode) return;
+    e.preventDefault(); outTa.classList.add("drop");
+  }));
+  ;["dragleave","drop"].forEach(ev => outTa.addEventListener(ev, e => {
+    e.preventDefault(); outTa.classList.remove("drop");
+  }));
+  outTa.addEventListener("drop", e => {
+    if (!compareMode) return;
+    const f = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (!f) return;
+    if (!/\.(xml|json)$/i.test(f.name)) { showError("⚠️ Arrastra un archivo .xml o .json"); return; }
+    loadFile(f, true);
+  });
+
   $("#open").onclick = () => $("#fileInput").click();
   $("#fileInput").addEventListener("change", e => {
     const f = e.target.files && e.target.files[0];
-    if (f) loadFile(f);
+    if (f) loadFile(f, compareMode); // en modo comparar, Abrir carga el XML B
     e.target.value = ""; // permite volver a abrir el mismo archivo
   });
 
@@ -1914,29 +2027,58 @@
     // Archivos muy grandes: validar en cada tecla congelaría la UI
     if (v.length > 2 * 1024 * 1024) { el.textContent = "⏸ validación pausada (archivo grande)"; return; }
     if (/^[\[{]/.test(v.trimStart())) {
-      try { JSON.parse(v); el.textContent = "✓ JSON válido"; el.className = "ok"; }
-      catch { el.textContent = "✗ JSON inválido"; el.className = "bad"; }
+      try { JSON.parse(v); el.textContent = "✓ JSON válido"; el.className = "ok"; clearGutterErrorLine(); }
+      catch(e) {
+        el.textContent = "✗ JSON inválido"; el.className = "bad";
+        const m = String(e.message).match(/line (\d+)/i);
+        markGutterErrorLine(m ? +m[1] : 0);
+      }
       return;
     }
     const doc = new DOMParser().parseFromString(v, "application/xml");
     if (doc.querySelector("parsererror")) {
-      el.textContent = "✗ " + parseXMLError(doc).replace("❌ ", "");
+      const msg = parseXMLError(doc);
+      el.textContent = "✗ " + msg.replace("❌ ", "");
       el.className = "bad";
+      const m = msg.match(/línea (\d+)/i);
+      markGutterErrorLine(m ? +m[1] : 0);
     } else {
       el.textContent = "✓ XML válido";
       el.className = "ok";
+      clearGutterErrorLine();
     }
   }
 
-  // Atajos: Ctrl+Enter (Formatear), Ctrl+M (Minificar), Ctrl+B (Vista), Ctrl+G (Ir a línea), Ctrl+Z/Y (Undo/Redo)
+  // --- Botón Ejemplo: carga el XML demo y lo formatea ---
+  $("#demo").onclick = () => {
+    saveForUndo();
+    inTa.value = DEMO_XML;
+    inTa.dispatchEvent(new Event("input"));
+    $("#fmt").click();
+  };
+
+  // Atajos: Ctrl+Enter (Formatear), Ctrl+M (Minificar), Ctrl+B (Vista), Ctrl+G (Ir a línea),
+  // Ctrl+O (Abrir), Ctrl+F (Buscar en salida), Ctrl+H (Reemplazar), Ctrl+Z/Y (Undo/Redo)
   document.addEventListener("keydown", e=>{
     if (e.ctrlKey && e.key === "Enter"){ e.preventDefault(); $("#fmt").click(); }
     if (e.ctrlKey && (e.key.toLowerCase() === "m")){ e.preventDefault(); $("#min").click(); }
     if (e.ctrlKey && (e.key.toLowerCase() === "b")){ e.preventDefault(); $("#toggleView").click();}
     if (e.ctrlKey && (e.key.toLowerCase() === "l")){ e.preventDefault(); $("#clear").click(); }
     if (e.ctrlKey && (e.key.toLowerCase() === "g")){ e.preventDefault(); gotoLine(); }
+    if (e.ctrlKey && (e.key.toLowerCase() === "o")){ e.preventDefault(); $("#open").click(); }
+    if (e.ctrlKey && (e.key.toLowerCase() === "f")){ e.preventDefault(); $("#search").focus(); }
+    if (e.ctrlKey && (e.key.toLowerCase() === "h")){ e.preventDefault(); $("#replFind").focus(); }
     if (e.ctrlKey && e.key.toLowerCase() === "z" && document.activeElement !== inTa){ e.preventDefault(); applyUndo(); }
     if (e.ctrlKey && e.key.toLowerCase() === "y" && document.activeElement !== inTa){ e.preventDefault(); applyRedo(); }
+  });
+
+  // Tab en el editor de entrada inserta sangría en vez de cambiar el foco
+  inTa.addEventListener("keydown", e => {
+    if (e.key !== "Tab" || e.ctrlKey || e.altKey || e.shiftKey) return;
+    e.preventDefault();
+    const ind = $("#tabs").checked ? "\t" : " ".repeat(+$("#indent").value || 2);
+    inTa.setRangeText(ind, inTa.selectionStart, inTa.selectionEnd, "end");
+    inTa.dispatchEvent(new Event("input"));
   });
 
   // Configuración inicial, en orden de precedencia creciente:
@@ -1954,7 +2096,7 @@
   // y disponible en consola para uso avanzado
   window.XMLShield = {
     prettyFormat, minify, xmlToJson, jsonToXml, xmlToCsv, xpathQuery, diffXML,
-    highlightXML, asEscapedString, buildTreeHTML
+    highlightXML, asEscapedString, buildTreeHTML, fmtBytes
   };
 })();
 </script>

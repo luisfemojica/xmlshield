@@ -1,0 +1,30 @@
+# Corre la suite de regresión (tests.html) en Chromium headless.
+# tests.html es dev-only: el producto distribuible sigue siendo solo index.html.
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar Playwright (Chromium)
+        run: |
+          npm init -y > /dev/null
+          npm install playwright > /dev/null
+          npx playwright install --with-deps chromium
+
+      - name: Servir el repo y ejecutar la suite
+        run: |
+          python3 -m http.server 8741 &
+          sleep 1
+          node .github/run-tests.mjs

@@ -3,7 +3,7 @@
 
 > **Documento vivo** - Se actualiza cada release
 > **Última revisión:** Junio 2026
-> **Versión actual:** v2.6 — 🎉 Roadmap v2.x COMPLETADO (v2.0 a v2.6)
+> **Versión actual:** v2.7 — 🎉 Roadmap v2.x COMPLETADO (v2.0 a v2.7)
 
 ---
 
@@ -305,6 +305,57 @@ El scroll horizontal nativo era casi invisible (sobre todo en temas oscuros). Ba
 
 ---
 
+### v2.7 - "Refinement" ✅ COMPLETADO
+**Fecha de release:** Junio 2026
+**Esfuerzo:** 1 semana
+**Prioridad:** Alta (pulido post-roadmap, decisión tras el NO-GO de v3.0)
+
+#### Fixes de la auditoría v2.7
+
+##### 1. Layout móvil real ✅ IMPLEMENTADO
+El media query repetía el grid de 2 columnas: en un teléfono los editores quedaban en ~190px inusables y el header (más alto que el viewport) dejaba los paneles sin altura. Ahora los paneles se apilan a ancho completo (70vh cada uno) y la página hace scroll. Controles en dos columnas compactas.
+
+##### 2. KPIs con unidades legibles ✅ IMPLEMENTADO
+`fmtBytes()`: "11.8 MB" en vez de "12345678 bytes".
+
+##### 3. Favicon inline ✅ IMPLEMENTADO
+Emoji 🛡️ como SVG data-URI: sin requests 404 y sin archivos extra.
+
+##### 4. Screenshot del README regenerado ✅ IMPLEMENTADO
+Capturado con Chrome headless usando el nuevo preset `?demo=1&theme=oscuro`.
+
+#### Quick wins de producto
+
+##### 5. Botón "Ejemplo" + preset ?demo=1 ✅ IMPLEMENTADO
+Carga un XML demo (atributos, repetidos, CDATA, comentario) y lo formatea. Onboarding instantáneo.
+
+##### 6. Línea de error marcada en el gutter ✅ IMPLEMENTADO
+La validación en vivo ya conocía línea y columna; ahora la pinta en rojo en el gutter (XML y JSON).
+
+##### 7. Formatear/Minificar JSON ✅ IMPLEMENTADO
+Si la entrada es JSON (ya se detectaba para validar y convertir), Formatear lo embellece y Minificar lo compacta en vez de fallar.
+
+##### 8. Árbol interactivo ✅ IMPLEMENTADO
+Contador de hijos por nodo y click en un nombre de tag → su ruta XPath va al campo de consulta (y al portapapeles). Sinergia directa con XPath de v2.5.
+
+##### 9. Archivo B en modo comparar ✅ IMPLEMENTADO
+El panel derecho acepta arrastrar un archivo y el botón Abrir carga el XML B durante la comparación.
+
+##### 10. Más atajos ✅ IMPLEMENTADO
+Ctrl+O (abrir), Ctrl+F (buscar en salida), Ctrl+H (reemplazar), y Tab inserta sangría en el editor.
+
+#### Infraestructura
+
+##### 11. CI con GitHub Actions ✅ IMPLEMENTADO
+`.github/workflows/tests.yml` + `.github/run-tests.mjs`: la suite completa corre en Chromium headless (Playwright) en cada push a main y cada PR. Badge de estado en el README. Hasta ahora los tests solo corrían a mano.
+
+#### Métricas Alcanzadas v2.7
+- **Tamaño:** ~80KB (dentro del límite duro de 100KB)
+- **Líneas:** ~2100 (bajo el techo de ~2500)
+- **Tests:** 77 casos pasando (9 nuevos) + CI automático
+
+---
+
 ## 🔮 Visión Futura (Post v2.6)
 
 ### v3.0 - "XMLShield Extended" — ❌ NO-GO (decisión: Junio 2026)
@@ -330,6 +381,7 @@ Las dos features de v3.0 que sí cabían en la filosofía (XPath y Diff) ya fuer
 │          │ v2.4 ✅  │          │          │
 │          │ v2.5 ✅  │          │          │
 │          │ v2.6 ✅  │          │          │
+│          │ v2.7 ✅  │          │          │
 └──────────┴──────────┴──────────┴──────────┘
 ```
 
@@ -371,6 +423,12 @@ Las dos features de v3.0 que sí cabían en la filosofía (XPath y Diff) ya fuer
 - [x] Comparación usable para archivos de hasta 5MB (truncado a 1000 diferencias)
 - [x] Archivo final <100KB y <2500 líneas (~72KB, ~1955 líneas)
 
+### v2.7 Success Criteria
+- [x] App usable en móvil (paneles apilados, editores >400px de alto)
+- [x] CI verde en cada push/PR con la suite completa (77 tests)
+- [x] Cada fix/quick win con su test de regresión
+- [x] Archivo final <100KB y <2500 líneas (~80KB, ~2100 líneas)
+
 ---
 
 ## 🚫 Features Descartadas
@@ -395,6 +453,7 @@ Las dos features de v3.0 que sí cabían en la filosofía (XPath y Diff) ya fuer
 | v2.4 | 100% | 9/9 | ~1606 | ~57KB | ✅ Released |
 | v2.5 | 100% | 4/4 | ~1825 | ~66KB | ✅ Released |
 | v2.6 | 100% | 1/1 | ~1955 | ~72KB | ✅ Released |
+| v2.7 | 100% | 11/11 | ~2100 | ~80KB | ✅ Released |
 
 ---
 

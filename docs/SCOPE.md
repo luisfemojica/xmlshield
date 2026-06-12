@@ -130,6 +130,18 @@ XMLShield es una herramienta de formateo y minificación de XML que funciona **1
 
 - ✅ **Diff/comparación semántica de XMLs** — reevaluado y promovido desde v3.0: cupo en ~120 líneas auditables y sirve directamente a los casos de uso primarios #2 y #3 (analistas y sysadmins). Ignora orden de atributos y espacios; reporte con rutas tipo XPath y marcadores ➕/➖/✏️.
 
+#### ⚪ v2.7 (Refinement) ✅ COMPLETADO
+**Estimado:** 1 semana | **Complejidad:** Baja-Media | **Líneas:** +150
+
+Pulido post-roadmap tras el NO-GO de v3.0:
+
+- ✅ **Layout móvil real** (paneles apilados, página con scroll) — el caso de uso móvil existía desde el botón Abrir de v2.4 pero la UI no acompañaba
+- ✅ **Onboarding**: botón Ejemplo + preset `?demo=1`
+- ✅ **Formatear/Minificar JSON** (la entrada JSON ya se detectaba para validar y convertir)
+- ✅ **Línea de error marcada en el gutter**, árbol interactivo con rutas XPath, archivo B en comparar
+- ✅ **KPIs legibles, favicon, más atajos** (Ctrl+O/F/H, Tab con sangría)
+- ✅ **CI con GitHub Actions** (infraestructura dev, no toca el producto)
+
 ---
 
 ## ❌ Fuera del Alcance (v2.x)

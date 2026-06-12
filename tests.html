@@ -260,7 +260,25 @@
     // --- buildTreeHTML ---
     test("buildTreeHTML: genera <details> colapsable para XML válido", () => {
       const t = X.buildTreeHTML("<a><b>x</b></a>");
-      assertTrue(t.includes("<details") && t.includes('class="tag"'), "árbol incompleto: " + t);
+      assertTrue(t.includes("<details") && t.includes('class="tag'), "árbol incompleto: " + t);
+    });
+
+    // --- v2.7: árbol interactivo ---
+    test("buildTreeHTML: rutas XPath con índice solo para hermanos repetidos", () => {
+      const t = X.buildTreeHTML("<r><i>1</i><i>2</i><u/></r>");
+      assertTrue(t.includes('data-xp="/r/i[2]"'), "falta índice en repetidos: " + t);
+      assertTrue(t.includes('data-xp="/r/u"'), "índice de más en único: " + t);
+    });
+
+    test("buildTreeHTML: contador de hijos en nodos con elementos", () => {
+      assertTrue(X.buildTreeHTML("<r><a/><b/></r>").includes("2 hijo"), "sin contador");
+    });
+
+    // --- v2.7: KPIs legibles ---
+    test("fmtBytes: B, KB y MB legibles", () => {
+      assertEq(X.fmtBytes(512), "512 B");
+      assertEq(X.fmtBytes(2048), "2.0 KB");
+      assertEq(X.fmtBytes(3 * 1024 * 1024), "3.0 MB");
     });
 
     test("buildTreeHTML: salida no-XML muestra aviso en vez de romper", () => {
@@ -482,6 +500,58 @@
       const outText = idoc.querySelector("#outHtml .syntax").textContent;
       assertTrue(outText.includes("1 diferencia") && outText.includes("/r/e/@id"), outText.slice(0, 150));
       assertTrue(cmp.textContent.includes("Comparar"), "no salió del modo comparar");
+    });
+
+    test("UI: Formatear embellece JSON directamente", async () => {
+      const inp = idoc.getElementById("in");
+      inp.value = '{"a":[1,2],"b":"x"}';
+      inp.dispatchEvent(new Event("input"));
+      idoc.getElementById("fmt").click();
+      await wait(400);
+      const out = idoc.querySelector("#outHtml .syntax").textContent;
+      assertTrue(out.includes('"a": ['), "JSON sin embellecer: " + out.slice(0, 80));
+    });
+
+    test("UI: Minificar compacta JSON directamente", async () => {
+      const inp = idoc.getElementById("in");
+      inp.value = '{\n  "a": 1,\n  "b": [2, 3]\n}';
+      inp.dispatchEvent(new Event("input"));
+      idoc.getElementById("min").click();
+      await wait(400);
+      assertEq(idoc.querySelector("#outHtml .syntax").textContent, '{"a":1,"b":[2,3]}');
+    });
+
+    test("UI: la validación en vivo marca la línea del error en el gutter", async () => {
+      const inp = idoc.getElementById("in");
+      inp.value = "<a>\n<b>\n</a>";
+      inp.dispatchEvent(new Event("input"));
+      await wait(600);
+      const mark = idoc.querySelector("#gutterIn .errline");
+      assertTrue(mark !== null, "sin marca de error en el gutter");
+      assertEq(mark.textContent, "3");
+    });
+
+    test("UI: botón Ejemplo carga el XML demo y lo formatea", async () => {
+      idoc.getElementById("demo").click();
+      await wait(500);
+      assertTrue(idoc.getElementById("in").value.includes("biblioteca"), "no cargó el ejemplo");
+      assertTrue(idoc.querySelector("#outHtml .syntax").textContent.includes("<biblioteca"), "no formateó el ejemplo");
+    });
+
+    test("UI: Tab inserta sangría en el editor en vez de cambiar el foco", () => {
+      const inp = idoc.getElementById("in");
+      inp.value = "abc";
+      inp.setSelectionRange(0, 0);
+      inp.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab", bubbles: true, cancelable: true }));
+      assertTrue(inp.value.startsWith("  "), "no insertó sangría: " + JSON.stringify(inp.value));
+    });
+
+    test("UI: los KPIs muestran unidades legibles", async () => {
+      const inp = idoc.getElementById("in");
+      inp.value = "<a>" + "x".repeat(3000) + "</a>";
+      inp.dispatchEvent(new Event("input"));
+      assertTrue(idoc.getElementById("inSize").textContent.includes("KB"),
+        "KPI sin unidad legible: " + idoc.getElementById("inSize").textContent);
     });
 
     test("UI: Recordar config guarda en localStorage y borra al desmarcar", () => {
