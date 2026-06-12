@@ -3,7 +3,7 @@
 
 > **Documento vivo** - Se actualiza cada release
 > **Última revisión:** Junio 2026
-> **Versión actual:** v2.3 — Roadmap original completado; v2.4-v2.6 planificadas
+> **Versión actual:** v2.6 — 🎉 Roadmap v2.x COMPLETADO (v2.0 a v2.6)
 
 ---
 
@@ -174,7 +174,7 @@ Cada tema solo define variables CSS; las reglas compartidas las aplican. Combina
 
 ---
 
-## 🎯 Versiones Planificadas
+## 🎯 Versiones Completadas (continuación)
 
 ### v2.4 - "Polish & Trust" ✅ COMPLETADO
 **Fecha de release:** Junio 2026
@@ -277,25 +277,31 @@ Para XMLs tabulares (exportaciones de BD/APIs — caso de uso primario #2 de SCO
 
 ---
 
-### v2.6 - "Compare" 📅 Q4 2026
-**Fecha estimada:** Octubre-Diciembre 2026
+### v2.6 - "Compare" ✅ COMPLETADO
+**Fecha de release:** Junio 2026 (adelantado sobre Q4)
 **Esfuerzo:** 1-2 meses
 **Prioridad:** Media
 
-#### Features Planificadas
+#### Features Implementadas
 
-##### 1. Diff/comparación de XMLs 🔲
-**Complejidad:** Alta | **Líneas:** ~300-400
+##### 1. Diff/comparación de XMLs ✅ IMPLEMENTADO
+**Complejidad:** Alta | **Líneas:** ~120
 
 Reevaluado: era la feature v3.0 más alineada con los casos de uso documentados (validar configs antes de deploy, comparar exportaciones). Promovida a v2.x al relajarse el límite de líneas.
 
-- Comparación **semántica**: ignora orden de atributos y espacios no significativos
-- Vista lado a lado con diferencias resaltadas (añadido/eliminado/modificado)
-- Modo texto plano como fallback para archivos grandes
+- Comparación **semántica** con `diffXML(a, b)`: ignora orden de atributos y espacios no significativos; hijos emparejados por nombre y posición entre hermanos del mismo nombre
+- Flujo de dos pasos con el botón "🆚 Comparar": el panel derecho recibe el XML B, el segundo click ejecuta el diff
+- Reporte con rutas tipo XPath y marcadores: `➕ añadido` / `➖ eliminado` / `✏️ modificado` (`✏️ /config/db/@port — "5432" → "5433"`)
+- Truncado a 1000 diferencias para mantener la UI fluida
+- Cualquier operación que escriba la salida cancela el modo comparar y restaura la vista previa
 
-#### Métricas Objetivo v2.6
-- **Tamaño:** ~80KB (dentro del límite duro de 100KB)
-- **Líneas:** ~2300-2500 (nuevo techo v2.x)
+##### Extra: scrollbars visibles
+El scroll horizontal nativo era casi invisible (sobre todo en temas oscuros). Barras personalizadas de 13px con riel y pulgar visibles en los 5 temas.
+
+#### Métricas Alcanzadas v2.6
+- **Tamaño:** ~72KB (dentro del límite duro de 100KB)
+- **Líneas:** ~1955 (bajo el techo de ~2500)
+- **Tests:** 68 casos pasando (10 nuevos)
 
 ---
 
@@ -323,11 +329,12 @@ Reevaluado: era la feature v3.0 más alineada con los casos de uso documentados 
 ┌──────────┬──────────┬──────────┬──────────┐
 │ Q1       │ Q2       │ Q3       │ Q4       │
 ├──────────┼──────────┼──────────┼──────────┤
-│ v2.0 ✅  │ v2.1 ✅  │          │ v2.6 🔨  │
+│ v2.0 ✅  │ v2.1 ✅  │          │          │
 │          │ v2.2 ✅  │          │          │
 │          │ v2.3 ✅  │          │          │
 │          │ v2.4 ✅  │          │          │
 │          │ v2.5 ✅  │          │          │
+│          │ v2.6 ✅  │          │          │
 └──────────┴──────────┴──────────┴──────────┘
 ```
 
@@ -365,9 +372,9 @@ Reevaluado: era la feature v3.0 más alineada con los casos de uso documentados 
 - [x] XML→CSV correcto para exportaciones tabulares típicas (escapado RFC 4180)
 
 ### v2.6 Success Criteria
-- [ ] Diff semántico correcto ignorando orden de atributos y espacios
-- [ ] Comparación usable para archivos de hasta 5MB
-- [ ] Archivo final <100KB y <2500 líneas
+- [x] Diff semántico correcto ignorando orden de atributos y espacios
+- [x] Comparación usable para archivos de hasta 5MB (truncado a 1000 diferencias)
+- [x] Archivo final <100KB y <2500 líneas (~72KB, ~1955 líneas)
 
 ---
 
@@ -392,7 +399,7 @@ Reevaluado: era la feature v3.0 más alineada con los casos de uso documentados 
 | v2.3 | 100% | 3/3 | ~1470 | ~50KB | ✅ Released |
 | v2.4 | 100% | 9/9 | ~1606 | ~57KB | ✅ Released |
 | v2.5 | 100% | 4/4 | ~1825 | ~66KB | ✅ Released |
-| v2.6 | 0% | 0/1 | ~2500 est. | ~80KB est. | 📅 Q4 2026 |
+| v2.6 | 100% | 1/1 | ~1955 | ~72KB | ✅ Released |
 
 ---
 

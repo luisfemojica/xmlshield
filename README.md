@@ -28,6 +28,7 @@ XMLShield es una herramienta de formateo y minificación de XML que funciona com
 - 📊 **Conversión XML → CSV** para datos tabulares (detecta el elemento repetido)
 - 🧭 **XPath queries** con `document.evaluate()` nativo — `//tag[@attr='x']`, `count()`, etc.
 - ♻️ **Buscar y reemplazar** en la entrada, integrado con Deshacer
+- 🆚 **Diff semántico** entre dos XML — ignora orden de atributos y espacios
 - 🎨 **Resaltado de sintaxis** sin dependencias externas
 - 👁️ **Vista triple** - Sintaxis resaltada, texto plano o árbol colapsable
 - 🔍 **Búsqueda con highlight** y navegación entre coincidencias
@@ -254,12 +255,12 @@ Refactorización completa con diseño moderno, panel dividido, gradientes, modo 
 - ✅ Conversión XML → CSV para datos tabulares (escapado RFC 4180)
 - ✅ Ordenar atributos y eliminar comentarios al minificar (opciones)
 
-### v2.6 - "Compare" 📅 Q4 2026
-**Fecha estimada:** Octubre-Diciembre 2026
+### v2.6 - "Compare" ✅ COMPLETADO
+**Fecha:** Junio 2026 (adelantado sobre Q4)
 
-- 🔲 Diff/comparación semántica de XMLs lado a lado (ignora orden de atributos y espacios)
+- ✅ Diff/comparación semántica de XMLs (ignora orden de atributos y espacios)
 
-**Estado:** roadmap original v2.1-v2.3 completado (~1470 líneas, ~50KB). El techo v2.x sube a ~2500 líneas; el límite duro sigue siendo 100KB.
+**🎉 Roadmap v2.x completado de principio a fin** — ~1955 líneas | ~72KB (límite duro: 100KB) | 68 tests de regresión.
 
 ### v3.0+ - "XMLShield Extended" 🔮 2027+
 **Proyecto separado** con features avanzadas:
@@ -326,8 +327,11 @@ Este proyecto mantiene documentación exhaustiva para guiar su desarrollo:
 - Vista de árbol navegable
 - Temas adicionales
 
-### 🔨 En Roadmap (v2.6)
-- Diff/comparación semántica de XMLs
+### ✅ Roadmap v2.4-v2.6 Completado
+- Bugfixes + 68 tests de regresión
+- Validación en vivo, abrir archivo (móvil), encadenar operaciones
+- XPath, buscar y reemplazar, XML → CSV
+- Diff semántico de XMLs
 
 ### 🤔 Bajo Evaluación (v3.0+)
 - Validación XSD (requiere ~2000+ líneas)
@@ -370,6 +374,10 @@ Para features más avanzadas, considera XMLShield Extended (v3.0+) o herramienta
 ---
 
 ## 📝 Changelog
+
+### v2.6 - Junio 2026
+- ✅ Diff semántico entre dos XML con rutas tipo XPath y marcadores ➕/➖/✏️ (ignora orden de atributos y espacios)
+- ✅ Scrollbars visibles en editores (el scroll horizontal nativo era casi invisible)
 
 ### v2.5 - Junio 2026
 - ✅ XPath queries sobre la entrada con resultados en la salida (`//tag`, predicados, `count()`, `//@attr`, `text()`)
