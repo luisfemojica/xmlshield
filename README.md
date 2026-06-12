@@ -333,10 +333,9 @@ Este proyecto mantiene documentación exhaustiva para guiar su desarrollo:
 - XPath, buscar y reemplazar, XML → CSV
 - Diff semántico de XMLs
 
-### 🤔 Bajo Evaluación (v3.0+)
-- Validación XSD (requiere ~2000+ líneas)
-- Resaltado de sintaxis en el panel de entrada
-- PWA (Progressive Web App)
+### ❌ v3.0 "Extended": NO-GO (decisión de Junio 2026)
+- Validación XSD, Web Workers y PWA quedan **descartados definitivamente**: requieren romper los principios del proyecto (un archivo, cero dependencias, auditable). Para eso existen `xmllint`, Oxygen XML o XMLSpy.
+- El desarrollo continúa en la línea v2.x con mejoras incrementales.
 
 ### ❌ Explícitamente FUERA del Alcance (v2.x)
 - Soporte DTD (legacy, complejo)

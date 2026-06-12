@@ -307,18 +307,13 @@ El scroll horizontal nativo era casi invisible (sobre todo en temas oscuros). Ba
 
 ## 🔮 Visión Futura (Post v2.6)
 
-### v3.0 - "XMLShield Extended" (2027+)
-**Nota:** Proyecto separado, NO reemplaza v2.x
+### v3.0 - "XMLShield Extended" — ❌ NO-GO (decisión: Junio 2026)
 
-#### Posibles Features
-- Validación XSD básica
-- Resaltado de sintaxis en el panel de entrada (editor overlay)
-- Web Workers para procesamiento
-- PWA con service worker
+**Decisión del mantenedor:** XMLShield se mantiene como producto v2.x de un solo archivo. Las features que motivaban un v3.0 separado (validación XSD, Web Workers, PWA con service worker) requieren romper los principios fundamentales (un archivo, cero dependencias, auditable en minutos) o miles de líneas de parser propio. Para esas necesidades, herramientas especializadas como `xmllint`, Oxygen XML o XMLSpy son la mejor respuesta.
 
-**Nota:** XPath y Diff fueron promovidos al roadmap v2.x (v2.5 y v2.6) tras reevaluarlos: XPath es nativo del navegador y Diff cabe en ~400 líneas auditables.
+Las dos features de v3.0 que sí cabían en la filosofía (XPath y Diff) ya fueron promovidas e implementadas en v2.5 y v2.6.
 
-**Decisión pendiente:** ¿Vale la pena o mejor sugerir herramientas enterprise?
+**El desarrollo continúa en la línea v2.x** con mejoras incrementales de pulido, accesibilidad y UX que respeten los límites (~2500 líneas, 100KB duro).
 
 ---
 
