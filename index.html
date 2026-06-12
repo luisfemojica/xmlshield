@@ -784,6 +784,7 @@
   const VIEW_ORDER = ["hl", "txt", "tree"];
   let viewMode = "hl";
   let lastOutputText = "";
+  let lastOutputKind = "auto"; // "auto" (XML/JSON por prefijo) | "csv" — decide extensión al descargar
 
   // --- Utilidades ---
   function bytesOf(str){ return new Blob([str]).size; }
@@ -918,8 +919,11 @@
   function renderOutput(text){
     if (compareMode) exitCompareMode(); // cualquier operación que escriba la salida cancela el modo comparar
     lastOutputText = text || "";
+    lastOutputKind = "auto"; // los handlers (ej. CSV) pueden sobreescribirlo después
     if (viewMode === "hl") {
-      outHtml.innerHTML = highlightXML(lastOutputText);
+      outHtml.innerHTML = outputIsJSON(lastOutputText)
+        ? highlightJSON(lastOutputText)
+        : highlightXML(lastOutputText);
     } else if (viewMode === "tree") {
       outTree.innerHTML = buildTreeHTML(lastOutputText);
     } else {
@@ -1124,6 +1128,29 @@
     return h;
   }
 
+  // --- Resaltado de sintaxis JSON (v2.8) ---
+  // Tokeniza sobre el texto crudo y escapa por partes: claves .attr,
+  // strings .value, números .tag, booleanos/null .comment
+  function highlightJSON(json) {
+    const re = /("(?:\\.|[^"\\])*")(\s*:)?|\b(true|false|null)\b|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g;
+    let out = "", last = 0, m;
+    while ((m = re.exec(json))) {
+      out += escapeHTML(json.slice(last, m.index));
+      if (m[1] !== undefined) {
+        out += `<span class="${m[2] ? "attr" : "value"}">${escapeHTML(m[1])}</span>${m[2] || ""}`;
+      } else if (m[3] !== undefined) {
+        out += `<span class="comment">${m[3]}</span>`;
+      } else {
+        out += `<span class="tag">${m[4]}</span>`;
+      }
+      last = m.index + m[0].length;
+    }
+    return out + escapeHTML(json.slice(last));
+  }
+
+  // La salida es JSON si empieza por { o [ (mismo criterio que la conversión)
+  function outputIsJSON(text){ return /^[\[{]/.test((text || "").trim()); }
+
   // --- Estadísticas del documento (elementos, atributos, profundidad) ---
   function collectStats(doc){
     let elems = 0, attrs = 0, depth = 0;
@@ -1139,6 +1166,21 @@
   }
   function resetStats(){
     ["#statElems", "#statAttrs", "#statDepth"].forEach(s => $(s).textContent = "–");
+  }
+  // Equivalente para JSON: valores totales, claves de objeto y profundidad
+  function collectStatsJSON(data){
+    let values = 0, keys = 0, depth = 0;
+    (function walk(v, d){
+      values++;
+      if (d > depth) depth = d;
+      if (v && typeof v === "object") {
+        if (!Array.isArray(v)) keys += Object.keys(v).length;
+        for (const x of (Array.isArray(v) ? v : Object.values(v))) walk(x, d + 1);
+      }
+    })(data, 1);
+    $("#statElems").textContent = values;
+    $("#statAttrs").textContent = keys;
+    $("#statDepth").textContent = depth;
   }
 
   // --- Líneas numeradas (gutter sincronizado con scroll) ---
@@ -1414,9 +1456,29 @@
     const countHTML = ` <span class="tree-count">· ${el.children.length} hijo(s)</span>`;
     return `<details open><summary>&lt;${name}${attrs}&gt;${textHTML}${countHTML}</summary>${kids}</details>`;
   }
-  function buildTreeHTML(xml){
-    if (!xml.trim()) return "";
-    const doc = new DOMParser().parseFromString(xml, "application/xml");
+  // Árbol para JSON: objetos {} y arrays [] colapsables, hojas con su valor
+  function jsonTreeHTML(label, val){
+    const lbl = label === null ? "" : `<span class="attr">${escapeHTML(label)}</span>: `;
+    if (val === null || typeof val !== "object") {
+      const cls = typeof val === "string" ? "txt" : "tag";
+      return `<div class="tree-leaf">${lbl}<span class="${cls}">${escapeHTML(JSON.stringify(val))}</span></div>`;
+    }
+    const isArr = Array.isArray(val);
+    const entries = isArr ? val.map((v, i) => [i, v]) : Object.entries(val);
+    const head = `${lbl}<span class="tag">${isArr ? "[ ]" : "{ }"}</span> <span class="tree-count">· ${entries.length} ${isArr ? "elemento(s)" : "clave(s)"}</span>`;
+    if (!entries.length) return `<div class="tree-leaf">${head}</div>`;
+    let kids = "";
+    for (const [k, v] of entries) kids += jsonTreeHTML(String(k), v);
+    return `<details open><summary>${head}</summary>${kids}</details>`;
+  }
+
+  function buildTreeHTML(text){
+    if (!text.trim()) return "";
+    if (outputIsJSON(text)) {
+      try { return jsonTreeHTML(null, JSON.parse(text)); }
+      catch { return `<div class="tree-leaf">⚠️ La salida actual no es JSON válido — no se puede mostrar como árbol.</div>`; }
+    }
+    const doc = new DOMParser().parseFromString(text, "application/xml");
     if (doc.querySelector("parsererror"))
       return `<div class="tree-leaf">⚠️ La salida actual no es XML válido — formatea primero para ver el árbol.</div>`;
     return treeNodeHTML(doc.documentElement, "/" + doc.documentElement.nodeName);
@@ -1600,9 +1662,12 @@
         let output;
         if (/^[\[{]/.test(input.trim())) {
           // La entrada es JSON: embellecerlo directamente
-          try { output = JSON.stringify(JSON.parse(input), null, $("#tabs").checked ? "\t" : (+$("#indent").value || 2)); }
+          try {
+            const data = JSON.parse(input);
+            output = JSON.stringify(data, null, $("#tabs").checked ? "\t" : (+$("#indent").value || 2));
+            collectStatsJSON(data);
+          }
           catch(e) { throw new Error("❌ JSON inválido: " + e.message); }
-          resetStats();
         } else {
           const indent = +$("#indent").value || 0;
           const indentChars = $("#tabs").checked ? "\t" : " ".repeat(indent);
@@ -1635,9 +1700,12 @@
         let output;
         if (/^[\[{]/.test(input.trim())) {
           // La entrada es JSON: compactarlo directamente
-          try { output = JSON.stringify(JSON.parse(input)); }
+          try {
+            const data = JSON.parse(input);
+            output = JSON.stringify(data);
+            collectStatsJSON(data);
+          }
           catch(e) { throw new Error("❌ JSON inválido: " + e.message); }
-          resetStats();
         } else {
           output = minify(input, {
             keepTextWS: $("#keepTextWS").checked,
@@ -1696,6 +1764,7 @@
     setTimeout(() => {
       try {
         renderOutput(xmlToCsv(input));
+        lastOutputKind = "csv"; // para descargar como .csv
       } catch(e) {
         showError(e.message);
       } finally {
@@ -1847,12 +1916,17 @@
       showError("No hay nada que descargar. Formatea o minifica primero.");
       return;
     }
-    const blob = new Blob([lastOutputText], { type: 'application/xml' });
+    // Extensión y MIME según el tipo real de la salida
+    let ext = "xml", mime = "application/xml";
+    if (lastOutputKind === "csv") { ext = "csv"; mime = "text/csv"; }
+    else if (outputIsJSON(lastOutputText)) { ext = "json"; mime = "application/json"; }
+    else if (!lastOutputText.trim().startsWith("<")) { ext = "txt"; mime = "text/plain"; }
+    const blob = new Blob([lastOutputText], { type: mime });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
     a.href = url;
-    a.download = `xml_formatted_${timestamp}.xml`;
+    a.download = `xmlshield_${timestamp}.${ext}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -2096,7 +2170,7 @@
   // y disponible en consola para uso avanzado
   window.XMLShield = {
     prettyFormat, minify, xmlToJson, jsonToXml, xmlToCsv, xpathQuery, diffXML,
-    highlightXML, asEscapedString, buildTreeHTML, fmtBytes
+    highlightXML, highlightJSON, asEscapedString, buildTreeHTML, fmtBytes
   };
 })();
 </script>

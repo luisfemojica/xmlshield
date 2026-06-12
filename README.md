@@ -4,7 +4,7 @@
 
 XMLShield es una herramienta de formateo y minificación de XML que funciona completamente en tu navegador, sin enviar datos a ningún servidor. Diseñada en respuesta a preocupaciones sobre la seguridad de herramientas online, XMLShield te da control total sobre tus archivos XML sensibles.
 
-[![Version](https://img.shields.io/badge/version-2.7-blue.svg)](https://github.com/luisfemojica/xmlshield/releases)
+[![Version](https://img.shields.io/badge/version-2.8-blue.svg)](https://github.com/luisfemojica/xmlshield/releases)
 [![Tests](https://github.com/luisfemojica/xmlshield/actions/workflows/tests.yml/badge.svg)](https://github.com/luisfemojica/xmlshield/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/license-Public%20Domain-green.svg)](LICENSE)
 [![Live Demo](https://img.shields.io/badge/demo-online-brightgreen.svg)](https://luisfemojica.github.io/xmlshield/)
@@ -30,8 +30,8 @@ XMLShield es una herramienta de formateo y minificación de XML que funciona com
 - 🧭 **XPath queries** con `document.evaluate()` nativo — `//tag[@attr='x']`, `count()`, etc.
 - ♻️ **Buscar y reemplazar** en la entrada, integrado con Deshacer
 - 🆚 **Diff semántico** entre dos XML — ignora orden de atributos y espacios
-- 🎨 **Resaltado de sintaxis** sin dependencias externas
-- 👁️ **Vista triple** - Sintaxis resaltada, texto plano o árbol colapsable
+- 🎨 **Resaltado de sintaxis XML y JSON** sin dependencias externas
+- 👁️ **Vista triple** - Sintaxis resaltada, texto plano o árbol colapsable (XML y JSON)
 - 🔍 **Búsqueda con highlight** y navegación entre coincidencias
 - 🔢 **Líneas numeradas** en ambos editores, sincronizadas con el scroll
 - 📊 **KPIs en tiempo real** - Tamaño, ahorro, elementos, atributos y profundidad
@@ -277,7 +277,15 @@ Refactorización completa con diseño moderno, panel dividido, gradientes, modo 
 - ✅ KPIs con unidades legibles (B/KB/MB), favicon, atajos Ctrl+O/F/H y Tab con sangría
 - ✅ CI en GitHub Actions: la suite corre headless en cada PR
 
-**🎉 Roadmap v2.x completado de principio a fin** — ~2100 líneas | ~80KB (límite duro: 100KB) | 77 tests de regresión con CI.
+### v2.8 - "JSON First-Class" ✅ COMPLETADO
+**Fecha:** Junio 2026
+
+- ✅ Resaltado de sintaxis JSON en la vista Resaltada
+- ✅ Árbol colapsable para JSON (objetos, arrays, contadores)
+- ✅ Estadísticas para JSON en los KPIs
+- ✅ Descarga con extensión correcta (.json/.csv/.txt)
+
+**🎉 Roadmap v2.x completado de principio a fin** — ~2177 líneas | ~83KB (límite duro: 100KB) | 85 tests de regresión con CI.
 
 ### v3.0+ - "XMLShield Extended" 🔮 2027+
 **Proyecto separado** con features avanzadas:
@@ -390,6 +398,12 @@ Para features más avanzadas, considera XMLShield Extended (v3.0+) o herramienta
 ---
 
 ## 📝 Changelog
+
+### v2.8 - Junio 2026
+- ✅ Resaltado de sintaxis para JSON: claves, strings, números y booleanos con colores (5 temas)
+- ✅ Vista de árbol para JSON: objetos y arrays colapsables con contador de claves/elementos
+- ✅ Estadísticas también para JSON (valores, claves, profundidad)
+- ✅ Descargar usa la extensión y MIME correctos: .json, .csv o .txt según la salida
 
 ### v2.7 - Junio 2026
 - ✅ Layout móvil real: paneles apilados a ancho completo y página con scroll

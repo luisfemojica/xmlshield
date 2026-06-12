@@ -142,6 +142,16 @@ Pulido post-roadmap tras el NO-GO de v3.0:
 - ✅ **KPIs legibles, favicon, más atajos** (Ctrl+O/F/H, Tab con sangría)
 - ✅ **CI con GitHub Actions** (infraestructura dev, no toca el producto)
 
+#### 🟢 v2.8 (JSON First-Class) ✅ COMPLETADO
+**Estimado:** 2-3 días | **Complejidad:** Media | **Líneas:** +75
+
+El soporte JSON de v2.4-v2.7 (validar, formatear, minificar, convertir) se completa en las vistas:
+
+- ✅ **Resaltado de sintaxis JSON** (claves/strings/números/booleanos, reutiliza los colores de los 5 temas)
+- ✅ **Árbol colapsable para JSON** con contadores de claves/elementos
+- ✅ **Estadísticas para JSON** en los KPIs existentes
+- ✅ **Descarga con extensión correcta** (.json/.csv/.txt según la salida)
+
 ---
 
 ## ❌ Fuera del Alcance (v2.x)

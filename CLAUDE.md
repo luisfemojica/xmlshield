@@ -39,7 +39,7 @@ CI: `.github/workflows/tests.yml` runs the full suite headless (Playwright + Chr
 
 ## Architecture
 
-Everything is in `index.html` (~2100 lines): CSS in `<style>`, HTML markup in `<body>`, and JavaScript in `<script>`. No modules, no bundler.
+Everything is in `index.html` (~2180 lines): CSS in `<style>`, HTML markup in `<body>`, and JavaScript in `<script>`. No modules, no bundler.
 
 ### Key JavaScript Functions
 
@@ -47,8 +47,8 @@ Everything is in `index.html` (~2100 lines): CSS in `<style>`, HTML markup in `<
 |----------|---------|
 | `prettyFormat(xml, indentChars, preserveWhitespace)` | DOM-tree walk to produce indented XML using `DOMParser` |
 | `minify(xml, opts)` | Minifies via `DOMParser` + `XMLSerializer` + regex cleanup |
-| `highlightXML(xml)` | Regex-based syntax highlighting without libraries |
-| `renderOutput(text)` | Renders output in the active view mode (`hl`/`txt`/`tree`) |
+| `highlightXML(xml)` / `highlightJSON(json)` | Regex-based syntax highlighting without libraries |
+| `renderOutput(text)` | Renders output in the active view mode (`hl`/`txt`/`tree`); auto-detects XML vs JSON |
 | `checkFileSize(text)` | Shows confirmation modal for files >10MB, blocks >15MB |
 | `updateKPIs(inText, outText)` | Updates the input/output/savings byte counters |
 | `collectStats(doc)` | Computes element/attribute/depth stats from a parsed doc |
@@ -57,7 +57,7 @@ Everything is in `index.html` (~2100 lines): CSS in `<style>`, HTML markup in `<
 | `xmlToCsv(xml)` | Tabulates the dominant repeated element (RFC 4180 escaping) |
 | `xpathQuery(xml, expr)` | XPath via native `document.evaluate()`; returns string array |
 | `diffXML(a, b)` | Semantic diff; returns lines `➕/➖/✏️ /path — detail` (max 1000) |
-| `buildTreeHTML(xml)` | Read-only collapsible tree view using native `<details>` |
+| `buildTreeHTML(text)` | Read-only collapsible tree view (XML or JSON) using native `<details>` |
 | `applySearch()` | Highlights search matches in the highlighted view (max 500) |
 | `applyTheme(name)` / `applyURLPreset()` | Visual themes and URL-based config presets |
 | `gotoLine()` | Ctrl+G: jump to a specific line in the input editor |
