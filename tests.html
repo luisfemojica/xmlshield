@@ -267,6 +267,95 @@
       assertTrue(X.buildTreeHTML('{"json": true}').includes("⚠️"));
     });
 
+    // --- v2.5: XPath ---
+    const XP_DOC = '<lib><b id="1"><t>A</t></b><b id="2"><t>B</t></b><c/></lib>';
+
+    test("xpathQuery: //tag devuelve los nodos serializados", () => {
+      const r = X.xpathQuery(XP_DOC, "//b");
+      assertEq(r.length, 2);
+      assertTrue(r[0].includes('id="1"'), "primer nodo incorrecto: " + r[0]);
+    });
+
+    test("xpathQuery: predicado por atributo", () => {
+      const r = X.xpathQuery(XP_DOC, "//b[@id='2']/t");
+      assertEq(r.length, 1);
+      assertEq(r[0], "<t>B</t>");
+    });
+
+    test("xpathQuery: count() devuelve un escalar numérico", () => {
+      const r = X.xpathQuery(XP_DOC, "count(//b)");
+      assertEq(r.length, 1);
+      assertEq(r[0], "2");
+    });
+
+    test("xpathQuery: selección de atributos como name=\"valor\"", () => {
+      const r = X.xpathQuery(XP_DOC, "//b/@id");
+      assertEq(r.join(","), 'id="1",id="2"');
+    });
+
+    test("xpathQuery: text() devuelve el texto plano", () => {
+      const r = X.xpathQuery(XP_DOC, "//b[1]/t/text()");
+      assertEq(r[0], "A");
+    });
+
+    test("xpathQuery: expresión inválida lanza error descriptivo", () => {
+      assertThrows(() => X.xpathQuery(XP_DOC, "///***"), /XPath inválida/i);
+    });
+
+    // --- v2.5: XML → CSV ---
+    test("xmlToCsv: tabula el elemento repetido dominante", () => {
+      const csv = X.xmlToCsv('<rows><r id="1"><n>Ana</n><e>30</e></r><r id="2"><n>Luis</n><e>25</e></r></rows>');
+      const lines = csv.split("\n");
+      assertEq(lines[0], "@id,n,e");
+      assertEq(lines[1], "1,Ana,30");
+      assertEq(lines[2], "2,Luis,25");
+    });
+
+    test("xmlToCsv: escapa comas y comillas según RFC 4180", () => {
+      const csv = X.xmlToCsv('<l><i><v>a,b</v></i><i><v>di"jo</v></i></l>');
+      const lines = csv.split("\n");
+      assertEq(lines[1], '"a,b"');
+      assertEq(lines[2], '"di""jo"');
+    });
+
+    test("xmlToCsv: columnas desalineadas entre filas quedan vacías", () => {
+      const csv = X.xmlToCsv('<l><i><a>1</a></i><i><b>2</b></i></l>');
+      const lines = csv.split("\n");
+      assertEq(lines[0], "a,b");
+      assertEq(lines[1], "1,");
+      assertEq(lines[2], ",2");
+    });
+
+    test("xmlToCsv: sin elemento repetido lanza error claro", () => {
+      assertThrows(() => X.xmlToCsv("<a><b>x</b></a>"), /repetido/i);
+    });
+
+    // --- v2.5: opciones de formato extra ---
+    test("prettyFormat: sortAttrs ordena los atributos alfabéticamente", () => {
+      assertEq(X.prettyFormat('<a z="1" b="2" m="3"/>', "  ", false, true), '<a b="2" m="3" z="1"/>\n');
+    });
+
+    test("minify: sortAttrs ordena los atributos alfabéticamente", () => {
+      assertEq(
+        X.minify('<a z="1" b="2"/>', { keepTextWS: true, compactAttrs: true, sortAttrs: true }),
+        '<a b="2" z="1"/>'
+      );
+    });
+
+    test("minify: dropComments elimina los comentarios", () => {
+      assertEq(
+        X.minify("<a><!-- fuera --><b>x</b></a>", { keepTextWS: true, compactAttrs: true, dropComments: true }),
+        "<a><b>x</b></a>"
+      );
+    });
+
+    test("minify: sin dropComments los comentarios se conservan", () => {
+      assertEq(
+        X.minify("<a><!-- ok --><b>x</b></a>", { keepTextWS: true, compactAttrs: true }),
+        "<a><!-- ok --><b>x</b></a>"
+      );
+    });
+
     // --- UI: quick wins v2.4 (se ejecutan al final, mutan estado del iframe) ---
     test("UI: validación en vivo marca XML válido", async () => {
       const inp = idoc.getElementById("in");
@@ -304,6 +393,28 @@
       await wait(400);
       idoc.getElementById("useOut").click();
       assertEq(inp.value, "<a>\n  <b>x</b>\n</a>\n");
+    });
+
+    test("UI: la barra XPath muestra resultados y contador", async () => {
+      const inp = idoc.getElementById("in");
+      inp.value = '<l><i n="1"/><i n="2"/><i n="3"/></l>';
+      inp.dispatchEvent(new Event("input"));
+      idoc.getElementById("xpath").value = "//i[@n>'1']";
+      idoc.getElementById("xpathRun").click();
+      await wait(200);
+      assertTrue(idoc.getElementById("xpathCount").textContent.includes("2"),
+        "contador: " + idoc.getElementById("xpathCount").textContent);
+    });
+
+    test("UI: Reemplazar todo actúa sobre la entrada e integra Undo", async () => {
+      const inp = idoc.getElementById("in");
+      inp.value = "<a><b>foo</b><c>foo</c></a>";
+      inp.dispatchEvent(new Event("input"));
+      idoc.getElementById("replFind").value = "foo";
+      idoc.getElementById("replWith").value = "bar";
+      idoc.getElementById("replAll").click();
+      assertEq(inp.value, "<a><b>bar</b><c>bar</c></a>");
+      assertTrue(idoc.getElementById("replCount").textContent.includes("2"));
     });
 
     test("UI: Recordar config guarda en localStorage y borra al desmarcar", () => {

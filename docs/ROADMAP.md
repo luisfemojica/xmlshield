@@ -237,40 +237,43 @@ Checkbox explícito "Recordar config" con `localStorage` (sangría, opciones, te
 
 ---
 
-### v2.5 - "Power Tools" 📅 Q3 2026
-**Fecha estimada:** Agosto-Septiembre 2026
+### v2.5 - "Power Tools" ✅ COMPLETADO
+**Fecha de release:** Junio 2026 (adelantado sobre Q3)
 **Esfuerzo:** 3-4 semanas
 **Prioridad:** Media
 
-#### Features Planificadas
+#### Features Implementadas
 
-##### 1. XPath queries 🔲
-**Complejidad:** Media | **Líneas:** ~100-150
+##### 1. XPath queries ✅ IMPLEMENTADO
+**Complejidad:** Media | **Líneas:** ~70
 
-Reevaluado: estaba descartado para v3.0, pero el navegador ya trae `document.evaluate()` **nativo** — la implementación es solo UI + resaltado de resultados. Pasa el Test de 4 Preguntas (4/4): cero dependencias, offline, <200 líneas, auditable.
+Reevaluado: estaba descartado para v3.0, pero el navegador ya trae `document.evaluate()` **nativo** — la implementación es solo UI. Pasa el Test de 4 Preguntas (4/4): cero dependencias, offline, <200 líneas, auditable.
 
-- Input de expresión XPath sobre la entrada
-- Lista de nodos coincidentes con conteo
-- Click en resultado → resalta/salta en la salida
+- Barra de consulta XPath sobre la entrada (Enter o botón Ejecutar)
+- Los nodos coincidentes se muestran en la salida (serializados, máx. 500) con contador
+- Soporta escalares (`count(//x)`, `name(/*)`), atributos (`//@id`) y `text()`
+- Resolver de namespaces vía `lookupNamespaceURI`
 
-##### 2. Buscar y reemplazar en la entrada 🔲
-**Complejidad:** Media | **Líneas:** ~60
+##### 2. Buscar y reemplazar en la entrada ✅ IMPLEMENTADO
+**Complejidad:** Media | **Líneas:** ~45
 
-La búsqueda actual solo cubre la salida. Reemplazo simple y "reemplazar todo" sobre el editor de entrada, con integración al historial de Undo.
+La búsqueda existente solo cubre la salida. Reemplazo literal (sensible a mayúsculas) sobre el editor de entrada: "Reemplazar" actúa sobre la siguiente coincidencia desde el cursor (con vuelta al inicio) y "Todo" sobre todas. Integrado con Undo, KPIs, gutter y validación en vivo.
 
-##### 3. Conversión XML → CSV 🔲
-**Complejidad:** Media | **Líneas:** ~80
+##### 3. Conversión XML → CSV ✅ IMPLEMENTADO
+**Complejidad:** Media | **Líneas:** ~55
 
-Para XMLs tabulares (exportaciones de BD/APIs — caso de uso primario #2 de SCOPE.md). Detecta el elemento repetido dominante y aplana atributos/hijos a columnas. Sin inferencia compleja de schema.
+Para XMLs tabulares (exportaciones de BD/APIs — caso de uso primario #2 de SCOPE.md). Detecta el elemento repetido dominante y lo tabula: atributos como columnas `@attr`, texto propio como `#text`, hijos simples por nombre. Escapado RFC 4180 (comas, comillas, saltos). Sin inferencia compleja de schema; error claro si no hay ≥2 filas.
 
-##### 4. Opciones de formato extra 🔲
-**Complejidad:** Baja | **Líneas:** ~40
-- Ordenar atributos alfabéticamente (checkbox)
+##### 4. Opciones de formato extra ✅ IMPLEMENTADO
+**Complejidad:** Baja | **Líneas:** ~35
+- Ordenar atributos alfabéticamente (checkbox, aplica a formatear y minificar)
 - Eliminar comentarios al minificar (checkbox)
+- Ambas persisten en "Recordar config" y en los presets de URL (`sortattrs`, `dropcomments`)
 
-#### Métricas Objetivo v2.5
-- **Tamaño:** ~65KB
-- **Líneas:** ~1900
+#### Métricas Alcanzadas v2.5
+- **Tamaño:** ~66KB
+- **Líneas:** ~1825
+- **Tests:** 58 casos pasando (16 nuevos)
 
 ---
 
@@ -320,10 +323,11 @@ Reevaluado: era la feature v3.0 más alineada con los casos de uso documentados 
 ┌──────────┬──────────┬──────────┬──────────┐
 │ Q1       │ Q2       │ Q3       │ Q4       │
 ├──────────┼──────────┼──────────┼──────────┤
-│ v2.0 ✅  │ v2.1 ✅  │ v2.5 🔨  │ v2.6 🔨  │
+│ v2.0 ✅  │ v2.1 ✅  │          │ v2.6 🔨  │
 │          │ v2.2 ✅  │          │          │
 │          │ v2.3 ✅  │          │          │
 │          │ v2.4 ✅  │          │          │
+│          │ v2.5 ✅  │          │          │
 └──────────┴──────────┴──────────┴──────────┘
 ```
 
@@ -356,9 +360,9 @@ Reevaluado: era la feature v3.0 más alineada con los casos de uso documentados 
 - [x] Carga de archivos funcional en móvil (botón Abrir archivo)
 
 ### v2.5 Success Criteria
-- [ ] XPath funcional con expresiones comunes (`//tag`, `//tag[@attr='x']`, `count()`)
-- [ ] Buscar y reemplazar integrado con Undo
-- [ ] XML→CSV correcto para exportaciones tabulares típicas
+- [x] XPath funcional con expresiones comunes (`//tag`, `//tag[@attr='x']`, `count()`, `//@attr`, `text()`)
+- [x] Buscar y reemplazar integrado con Undo
+- [x] XML→CSV correcto para exportaciones tabulares típicas (escapado RFC 4180)
 
 ### v2.6 Success Criteria
 - [ ] Diff semántico correcto ignorando orden de atributos y espacios
@@ -387,7 +391,7 @@ Reevaluado: era la feature v3.0 más alineada con los casos de uso documentados 
 | v2.2 | 100% | 4/4 | ~1300 | ~43KB | ✅ Released |
 | v2.3 | 100% | 3/3 | ~1470 | ~50KB | ✅ Released |
 | v2.4 | 100% | 9/9 | ~1606 | ~57KB | ✅ Released |
-| v2.5 | 0% | 0/4 | ~1900 est. | ~65KB est. | 📅 Q3 2026 |
+| v2.5 | 100% | 4/4 | ~1825 | ~66KB | ✅ Released |
 | v2.6 | 0% | 0/1 | ~2500 est. | ~80KB est. | 📅 Q4 2026 |
 
 ---

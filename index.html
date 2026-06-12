@@ -102,6 +102,7 @@
   #clear { background: #e74c3c; color: #fff; }
   #conv { background: #14919b; color: #fff; }
   #open { background: #34495e; color: #fff; }
+  #csv { background: #0d9488; color: #fff; }
   #useOut { background: #0e7490; color: #fff; }
   #toggleView { background: var(--purple); color:#fff; }
 
@@ -533,7 +534,7 @@
     color: #fff;
     border: 1px solid rgba(255,255,255,0.25);
   }
-  #searchCount { color: rgba(255,255,255,0.85); font-size: 0.85rem; }
+  #searchCount, #xpathCount, #replCount { color: rgba(255,255,255,0.85); font-size: 0.85rem; }
   mark.search-hit { background: #ffd54f; color: #222; border-radius: 2px; }
   mark.search-hit.current { background: var(--orange); color: #fff; outline: 2px solid #ff5722; }
 
@@ -576,6 +577,7 @@
       <button id="fmt" title="Ctrl+Enter">✨ Formatear</button>
       <button id="min" title="Ctrl+M">📦 Minificar</button>
       <button id="conv" title="Detecta la entrada: XML→JSON o JSON→XML">🔁 XML ⇄ JSON</button>
+      <button id="csv" title="Tabula el elemento repetido dominante: atributos e hijos simples como columnas">📊 XML → CSV</button>
       <button id="useOut" title="Usa la salida actual como nueva entrada para encadenar operaciones">⬆️ Reusar salida</button>
       <button id="toggleView" title="Ctrl+B — alterna Resaltada / Texto / Árbol">👁️ Vista: Resaltada</button>
       <button id="copy">📋 Copiar</button>
@@ -611,6 +613,12 @@
       <label title="Quita espacios redundantes en los atributos, sin tocar el texto entre comillas">
         <input id="compactAttrs" type="checkbox" checked> Compactar atributos
       </label>
+      <label title="Ordena los atributos alfabéticamente al formatear o minificar">
+        <input id="sortAttrs" type="checkbox"> Ordenar atributos
+      </label>
+      <label title="Elimina todos los comentarios al minificar">
+        <input id="dropComments" type="checkbox"> Quitar comentarios (min.)
+      </label>
       <span class="sep">|</span>
       <label class="search-box">🔍
         <input id="search" type="search" placeholder="Buscar en salida...">
@@ -623,6 +631,24 @@
       <label title="Guarda sangría, opciones, tema y vista en este navegador (localStorage). Nada sale de tu equipo; desmárcalo y se borra.">
         <input id="remember" type="checkbox"> Recordar config
       </label>
+    </div>
+
+    <div class="options-row">
+      <label class="search-box" title="Consulta XPath sobre la entrada con document.evaluate() nativo. Los nodos coincidentes se muestran en la salida.">🧭 XPath:
+        <input id="xpath" type="search" placeholder="//libro[@id='1'] · count(//tag)" style="width:230px">
+      </label>
+      <button class="search-nav" id="xpathRun" title="Ejecutar la consulta (o Enter)">▶ Ejecutar</button>
+      <span id="xpathCount"></span>
+      <span class="sep">|</span>
+      <label class="search-box" title="Reemplazo literal (sensible a mayúsculas) en el editor de entrada, integrado con Deshacer">♻️
+        <input id="replFind" type="search" placeholder="Buscar en entrada...">
+      </label>
+      <label class="search-box">→
+        <input id="replWith" type="search" placeholder="Reemplazar con...">
+      </label>
+      <button class="search-nav" id="replOne" title="Reemplaza la siguiente coincidencia desde el cursor">Reemplazar</button>
+      <button class="search-nav" id="replAll" title="Reemplaza todas las coincidencias">Todo</button>
+      <span id="replCount"></span>
     </div>
 
     <div class="kpi-row">
@@ -843,7 +869,7 @@
   }
 
   // --- Pretty print (indentación real por árbol DOM) ---
-  function prettyFormat(xml, indentChars = "  ", preserveWhitespace=false) {
+  function prettyFormat(xml, indentChars = "  ", preserveWhitespace=false, sortAttrs=false) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(xml, "application/xml");
     const err = doc.querySelector("parsererror");
@@ -861,7 +887,9 @@
 
         case Node.ELEMENT_NODE: {
           let openTag = "<" + node.nodeName;
-          for (let attr of node.attributes) openTag += ` ${attr.name}="${attr.value}"`;
+          let attrList = Array.from(node.attributes);
+          if (sortAttrs) attrList.sort((a, b) => a.name.localeCompare(b.name));
+          for (let attr of attrList) openTag += ` ${attr.name}="${attr.value}"`;
 
           if (node.childNodes.length === 0) {
             output += `${indent}${openTag}/>
@@ -929,6 +957,26 @@
     }
   }
 
+  // --- Eliminar comentarios del árbol (opción "Quitar comentarios") ---
+  function removeCommentsRec(node){
+    let child = node.firstChild;
+    while (child) {
+      const next = child.nextSibling;
+      if (child.nodeType === Node.COMMENT_NODE) node.removeChild(child);
+      else if (child.nodeType === Node.ELEMENT_NODE) removeCommentsRec(child);
+      child = next;
+    }
+  }
+
+  // --- Ordenar atributos alfabéticamente en el árbol (opción "Ordenar atributos") ---
+  function sortAttrsRec(el){
+    if (el.attributes.length > 1) {
+      const sorted = Array.from(el.attributes).sort((a, b) => a.name.localeCompare(b.name));
+      for (const a of sorted) { el.removeAttributeNode(a); el.setAttributeNode(a); }
+    }
+    for (let ch = el.firstElementChild; ch; ch = ch.nextElementSibling) sortAttrsRec(ch);
+  }
+
   // --- Minify (seguro, sin TreeWalker) ---
   function minify(xml, opts){
     const parser = new DOMParser();
@@ -937,6 +985,8 @@
     if (err) throw new Error(parseXMLError(doc));
     collectStats(doc);
 
+    if (opts.dropComments) removeCommentsRec(doc);
+    if (opts.sortAttrs) sortAttrsRec(doc.documentElement);
     if (!opts.keepTextWS) normalizeTextNodesRec(doc);
 
     let xmlOut = new XMLSerializer().serializeToString(doc);
@@ -1108,6 +1158,88 @@
     return xml.trimEnd();
   }
 
+  // --- XPath queries (document.evaluate nativo, sin motor propio) ---
+  // Devuelve un array de strings: nodos serializados, o el valor escalar
+  // para expresiones como count(//x) o name(/*)
+  function xpathQuery(xml, expr){
+    const doc = new DOMParser().parseFromString(xml, "application/xml");
+    if (doc.querySelector("parsererror")) throw new Error(parseXMLError(doc));
+    const resolver = prefix => doc.documentElement.lookupNamespaceURI(prefix);
+    let result;
+    try {
+      result = doc.evaluate(expr, doc, resolver, XPathResult.ANY_TYPE, null);
+    } catch(e) {
+      throw new Error("❌ Expresión XPath inválida.");
+    }
+    const values = [];
+    switch (result.resultType) {
+      case XPathResult.NUMBER_TYPE:  values.push(String(result.numberValue));  break;
+      case XPathResult.STRING_TYPE:  values.push(result.stringValue);          break;
+      case XPathResult.BOOLEAN_TYPE: values.push(String(result.booleanValue)); break;
+      default: {
+        const ser = new XMLSerializer();
+        let n;
+        while ((n = result.iterateNext()) && values.length < 500) {
+          if (n.nodeType === Node.ATTRIBUTE_NODE) values.push(`${n.name}="${n.value}"`);
+          else if (n.nodeType === Node.TEXT_NODE || n.nodeType === Node.CDATA_SECTION_NODE) values.push(n.nodeValue);
+          else values.push(ser.serializeToString(n));
+        }
+      }
+    }
+    return values;
+  }
+
+  // --- Conversión XML → CSV (para exportaciones tabulares) ---
+  // Detecta el elemento repetido dominante y lo tabula: atributos como
+  // columnas "@attr", texto propio como "#text", hijos simples por nombre.
+  function xmlToCsv(xml){
+    const doc = new DOMParser().parseFromString(xml, "application/xml");
+    if (doc.querySelector("parsererror")) throw new Error(parseXMLError(doc));
+    collectStats(doc);
+
+    let best = null, bestCount = 0;
+    (function scan(el){
+      const tally = {};
+      for (let ch = el.firstElementChild; ch; ch = ch.nextElementSibling) {
+        tally[ch.nodeName] = (tally[ch.nodeName] || 0) + 1;
+        scan(ch);
+      }
+      for (const name in tally) {
+        if (tally[name] > bestCount) { bestCount = tally[name]; best = { parent: el, name }; }
+      }
+    })(doc.documentElement);
+
+    if (!best || bestCount < 2)
+      throw new Error("❌ No se encontró un elemento repetido para tabular (se necesitan al menos 2 filas).");
+
+    const rows = Array.from(best.parent.children).filter(c => c.nodeName === best.name);
+    const cols = [], colSet = new Set();
+    const addCol = c => { if (!colSet.has(c)) { colSet.add(c); cols.push(c); } };
+
+    const rowData = rows.map(r => {
+      const d = {};
+      for (const a of r.attributes) { addCol("@" + a.name); d["@" + a.name] = a.value; }
+      let own = "";
+      for (const ch of r.childNodes)
+        if (ch.nodeType === Node.TEXT_NODE || ch.nodeType === Node.CDATA_SECTION_NODE) own += ch.nodeValue;
+      own = own.replace(/\s+/g, " ").trim();
+      if (own) { addCol("#text"); d["#text"] = own; }
+      for (const ch of r.children) {
+        addCol(ch.nodeName);
+        d[ch.nodeName] = (ch.textContent || "").replace(/\s+/g, " ").trim();
+      }
+      return d;
+    });
+
+    const esc = s => {
+      s = s === undefined ? "" : String(s);
+      return /[",\n;]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+    const lines = [cols.map(esc).join(",")];
+    for (const d of rowData) lines.push(cols.map(c => esc(d[c])).join(","));
+    return lines.join("\n");
+  }
+
   // --- Vista de árbol colapsable (solo lectura, con <details> nativo) ---
   function treeNodeHTML(el){
     let attrs = "";
@@ -1221,6 +1353,8 @@
       preserve: $("#preserve").checked,
       keepws: $("#keepTextWS").checked,
       compact: $("#compactAttrs").checked,
+      sortattrs: $("#sortAttrs").checked,
+      dropcomments: $("#dropComments").checked,
       theme: $("#themeSel").value,
       view: viewMode
     }));
@@ -1235,10 +1369,12 @@
     $("#preserve").checked = !!p.preserve;
     $("#keepTextWS").checked = !!p.keepws;
     $("#compactAttrs").checked = !!p.compact;
+    $("#sortAttrs").checked = !!p.sortattrs;
+    $("#dropComments").checked = !!p.dropcomments;
     if (p.theme) applyTheme(p.theme);
     if (VIEW_ORDER.includes(p.view)) viewMode = p.view;
   }
-  ["#indent", "#tabs", "#preserve", "#keepTextWS", "#compactAttrs", "#remember"]
+  ["#indent", "#tabs", "#preserve", "#keepTextWS", "#compactAttrs", "#sortAttrs", "#dropComments", "#remember"]
     .forEach(s => $(s).addEventListener("change", savePrefs));
 
   // --- Presets de configuración vía URL ---
@@ -1250,6 +1386,8 @@
     if (p.has("preserve")) $("#preserve").checked = p.get("preserve") === "1";
     if (p.has("keepws"))   $("#keepTextWS").checked = p.get("keepws") === "1";
     if (p.has("compact"))  $("#compactAttrs").checked = p.get("compact") === "1";
+    if (p.has("sortattrs"))    $("#sortAttrs").checked = p.get("sortattrs") === "1";
+    if (p.has("dropcomments")) $("#dropComments").checked = p.get("dropcomments") === "1";
     if (p.has("theme"))    applyTheme(p.get("theme"));
     const v = p.get("view");
     if (v === "texto") viewMode = "txt";
@@ -1291,7 +1429,7 @@
         const indent = +$("#indent").value || 0;
         const indentChars = $("#tabs").checked ? "\t" : " ".repeat(indent);
         const preserve = $("#preserve").checked;
-        const output = prettyFormat(input, indentChars, preserve);
+        const output = prettyFormat(input, indentChars, preserve, $("#sortAttrs").checked);
         renderOutput(output);
       } catch(e) {
         showError(e.message);
@@ -1317,7 +1455,9 @@
       try {
         const output = minify(input, {
           keepTextWS: $("#keepTextWS").checked,
-          compactAttrs: $("#compactAttrs").checked
+          compactAttrs: $("#compactAttrs").checked,
+          dropComments: $("#dropComments").checked,
+          sortAttrs: $("#sortAttrs").checked
         });
         renderOutput(output);
       } catch(e) {
@@ -1354,6 +1494,83 @@
     }, 80);
   };
 
+  $("#csv").onclick = async () => {
+    clearError();
+    setDisableToggleView(false);
+    const input = inTa.value;
+    if (!input.trim()) { showError("⚠️ No hay XML para convertir."); return; }
+
+    const sizeCheck = await checkFileSize(input);
+    if (sizeCheck === false) { showError("⚠️ Operación cancelada."); return; }
+
+    const mb = (new Blob([input]).size / (1024*1024)).toFixed(1);
+    showLoading("Convirtiendo XML → CSV...", sizeCheck === "large" ? `Archivo de ${mb} MB — esto puede tardar` : "Por favor espera");
+
+    setTimeout(() => {
+      try {
+        renderOutput(xmlToCsv(input));
+      } catch(e) {
+        showError(e.message);
+      } finally {
+        hideLoading();
+      }
+    }, 80);
+  };
+
+  // --- XPath: los resultados se muestran en la salida ---
+  function runXPath(){
+    clearError();
+    const expr = $("#xpath").value.trim();
+    const countEl = $("#xpathCount");
+    if (!expr) { countEl.textContent = ""; return; }
+    if (!inTa.value.trim()) { showError("⚠️ No hay XML en la entrada."); return; }
+    try {
+      const values = xpathQuery(inTa.value, expr);
+      renderOutput(values.join("\n"));
+      countEl.textContent = values.length
+        ? `${values.length}${values.length >= 500 ? "+" : ""} resultado(s)`
+        : "0 resultados";
+    } catch(e) {
+      countEl.textContent = "";
+      showError(e.message);
+    }
+  }
+  $("#xpathRun").onclick = runXPath;
+  $("#xpath").addEventListener("keydown", e => { if (e.key === "Enter") runXPath(); });
+
+  // --- Buscar y reemplazar en la entrada (literal, integrado con Undo) ---
+  function replaceInInput(all){
+    const find = $("#replFind").value;
+    const countEl = $("#replCount");
+    if (!find) { countEl.textContent = ""; return; }
+    const wit = $("#replWith").value;
+    const v = inTa.value;
+
+    if (all) {
+      const count = v.split(find).length - 1;
+      if (!count) { countEl.textContent = "0 coincidencias"; return; }
+      saveForUndo();
+      inTa.value = v.split(find).join(wit);
+      countEl.textContent = `${count} reemplazo(s)`;
+    } else {
+      // Siguiente coincidencia desde el cursor, con vuelta al inicio
+      let idx = v.indexOf(find, inTa.selectionEnd);
+      if (idx === -1) idx = v.indexOf(find);
+      if (idx === -1) { countEl.textContent = "0 coincidencias"; return; }
+      saveForUndo();
+      inTa.value = v.slice(0, idx) + wit + v.slice(idx + find.length);
+      inTa.focus();
+      inTa.setSelectionRange(idx, idx + wit.length);
+      countEl.textContent = "1 reemplazo";
+    }
+    updateKPIs(inTa.value, lastOutputText);
+    updateGutter(gutterIn, inTa.value);
+    liveValidate();
+  }
+  $("#replOne").onclick = () => replaceInInput(false);
+  $("#replAll").onclick = () => replaceInInput(true);
+  $("#replFind").addEventListener("keydown", e => { if (e.key === "Enter") replaceInInput(false); });
+
   $("#copy").onclick = async () => {
     try{
       const lang = $("#copyAs").value;
@@ -1374,6 +1591,8 @@
       preserve: $("#preserve").checked ? 1 : 0,
       keepws: $("#keepTextWS").checked ? 1 : 0,
       compact: $("#compactAttrs").checked ? 1 : 0,
+      sortattrs: $("#sortAttrs").checked ? 1 : 0,
+      dropcomments: $("#dropComments").checked ? 1 : 0,
       theme: $("#themeSel").value,
       view: viewMode === "hl" ? "resaltada" : viewMode === "txt" ? "texto" : "arbol"
     });
@@ -1598,7 +1817,7 @@
   // API pública: usada por tests.html (suite de regresión, solo desarrollo)
   // y disponible en consola para uso avanzado
   window.XMLShield = {
-    prettyFormat, minify, xmlToJson, jsonToXml,
+    prettyFormat, minify, xmlToJson, jsonToXml, xmlToCsv, xpathQuery,
     highlightXML, asEscapedString, buildTreeHTML
   };
 })();
