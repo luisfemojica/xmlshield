@@ -356,6 +356,58 @@
       );
     });
 
+    // --- v2.6: diff semántico ---
+    test("diffXML: documentos equivalentes con distinto orden de atributos y espacios → sin diferencias", () => {
+      const a = '<r>\n  <e b="2" a="1">  hola   mundo </e>\n</r>';
+      const b = '<r><e a="1" b="2">hola mundo</e></r>';
+      assertEq(X.diffXML(a, b).length, 0);
+    });
+
+    test("diffXML: atributo modificado con ruta y valores", () => {
+      const d = X.diffXML('<r><e id="1"/></r>', '<r><e id="2"/></r>');
+      assertEq(d.length, 1);
+      assertTrue(d[0].includes("✏️") && d[0].includes("/r/e/@id") && d[0].includes('"1" → "2"'), d[0]);
+    });
+
+    test("diffXML: atributo añadido y eliminado", () => {
+      const d = X.diffXML('<r a="1"/>', '<r b="2"/>');
+      assertEq(d.length, 2);
+      assertTrue(d.some(l => l.startsWith("➖") && l.includes("/@a")), "falta eliminado: " + d.join(" | "));
+      assertTrue(d.some(l => l.startsWith("➕") && l.includes("/@b")), "falta añadido: " + d.join(" | "));
+    });
+
+    test("diffXML: texto modificado", () => {
+      const d = X.diffXML("<r><t>uno</t></r>", "<r><t>dos</t></r>");
+      assertEq(d.length, 1);
+      assertTrue(d[0].includes('"uno" → "dos"'), d[0]);
+    });
+
+    test("diffXML: elemento añadido en B (hermanos repetidos)", () => {
+      const d = X.diffXML("<r><i>1</i></r>", "<r><i>1</i><i>2</i></r>");
+      assertEq(d.length, 1);
+      assertTrue(d[0].startsWith("➕") && d[0].includes("/r/i[2]"), d[0]);
+    });
+
+    test("diffXML: elemento eliminado en B", () => {
+      const d = X.diffXML("<r><i>1</i><i>2</i></r>", "<r><i>1</i></r>");
+      assertEq(d.length, 1);
+      assertTrue(d[0].startsWith("➖") && d[0].includes("/r/i[2]"), d[0]);
+    });
+
+    test("diffXML: rutas anidadas correctas", () => {
+      const d = X.diffXML("<a><b><c x='1'/></b></a>", "<a><b><c x='2'/></b></a>");
+      assertTrue(d[0].includes("/a/b/c/@x"), d[0]);
+    });
+
+    test("diffXML: raíces con distinto nombre se reportan", () => {
+      const d = X.diffXML("<a/>", "<b/>");
+      assertTrue(d.some(l => l.includes("raíz")), d.join(" | "));
+    });
+
+    test("diffXML: XML inválido lanza error indicando cuál documento", () => {
+      assertThrows(() => X.diffXML("<a/>", "<b><c></b>"), /XML B/i);
+    });
+
     // --- UI: quick wins v2.4 (se ejecutan al final, mutan estado del iframe) ---
     test("UI: validación en vivo marca XML válido", async () => {
       const inp = idoc.getElementById("in");
@@ -415,6 +467,21 @@
       idoc.getElementById("replAll").click();
       assertEq(inp.value, "<a><b>bar</b><c>bar</c></a>");
       assertTrue(idoc.getElementById("replCount").textContent.includes("2"));
+    });
+
+    test("UI: modo comparar — pegar B y ejecutar diff muestra las diferencias", async () => {
+      const inp = idoc.getElementById("in");
+      inp.value = '<r><e id="1">x</e></r>';
+      inp.dispatchEvent(new Event("input"));
+      const cmp = idoc.getElementById("cmp");
+      cmp.click(); // entra en modo comparar
+      assertTrue(cmp.textContent.includes("Ejecutar"), "no entró en modo comparar");
+      idoc.getElementById("out").value = '<r><e id="2">x</e></r>';
+      cmp.click(); // ejecuta el diff
+      await wait(200);
+      const outText = idoc.querySelector("#outHtml .syntax").textContent;
+      assertTrue(outText.includes("1 diferencia") && outText.includes("/r/e/@id"), outText.slice(0, 150));
+      assertTrue(cmp.textContent.includes("Comparar"), "no salió del modo comparar");
     });
 
     test("UI: Recordar config guarda en localStorage y borra al desmarcar", () => {

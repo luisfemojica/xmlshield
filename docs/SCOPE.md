@@ -125,10 +125,10 @@ XMLShield es una herramienta de formateo y minificación de XML que funciona **1
 - ✅ **Conversión XML → CSV** para exportaciones tabulares (sin inferencia compleja de schema, escapado RFC 4180)
 - ✅ **Opciones de formato extra**: ordenar atributos, eliminar comentarios al minificar
 
-#### 🔴 v2.6 (Compare)
-**Estimado:** 1-2 meses | **Complejidad:** Alta | **Líneas:** +300-400
+#### 🔴 v2.6 (Compare) ✅ COMPLETADO
+**Estimado:** 1-2 meses | **Complejidad:** Alta | **Líneas:** +120
 
-- 🔲 **Diff/comparación semántica de XMLs** — reevaluado y promovido desde v3.0: cabe en ~400 líneas auditables y sirve directamente a los casos de uso primarios #2 y #3 (analistas y sysadmins).
+- ✅ **Diff/comparación semántica de XMLs** — reevaluado y promovido desde v3.0: cupo en ~120 líneas auditables y sirve directamente a los casos de uso primarios #2 y #3 (analistas y sysadmins). Ignora orden de atributos y espacios; reporte con rutas tipo XPath y marcadores ➕/➖/✏️.
 
 ---
 

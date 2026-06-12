@@ -104,6 +104,7 @@
   #open { background: #34495e; color: #fff; }
   #csv { background: #0d9488; color: #fff; }
   #useOut { background: #0e7490; color: #fff; }
+  #cmp { background: #be185d; color: #fff; }
   #toggleView { background: var(--purple); color:#fff; }
 
   .controls select {
@@ -317,6 +318,7 @@
     gap: 0;
     flex: 1;
     overflow: hidden;
+    min-height: 0;  /* permite encogerse dentro del contenedor flex */
   }
 
     .panel {
@@ -324,7 +326,12 @@
     flex-direction: column;
     background: var(--panel);
     border-right: 1px solid var(--border);
-    height: calc(100vh - 250px);
+    /* Sin altura fija: el grid estira el panel al alto real del workspace,
+       sea cual sea la altura del header. Con calc(100vh - 250px) los
+       editores se salían del viewport y el scroll horizontal quedaba
+       fuera de la pantalla. */
+    min-height: 0;
+    overflow: hidden;
     min-width: 0;  /* Permite que se encoja si necesario */
     max-width: 100%;  /* No excede su espacio */
   }
@@ -371,6 +378,23 @@
     line-height: 1.6;
     overflow: auto;
   }
+
+  /* Scrollbars visibles (el scroll horizontal nativo es casi invisible,
+     sobre todo en temas oscuros) */
+  textarea, .viewer { scrollbar-width: auto; scrollbar-color: rgba(127,127,127,0.65) rgba(127,127,127,0.15); }
+  textarea::-webkit-scrollbar, .viewer::-webkit-scrollbar { width: 13px; height: 13px; }
+  textarea::-webkit-scrollbar-track, .viewer::-webkit-scrollbar-track { background: rgba(127,127,127,0.15); }
+  textarea::-webkit-scrollbar-thumb, .viewer::-webkit-scrollbar-thumb {
+    background: rgba(127,127,127,0.65);
+    border-radius: 7px;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+  }
+  textarea::-webkit-scrollbar-thumb:hover, .viewer::-webkit-scrollbar-thumb:hover {
+    background: rgba(127,127,127,0.95);
+    background-clip: padding-box;
+  }
+  textarea::-webkit-scrollbar-corner, .viewer::-webkit-scrollbar-corner { background: transparent; }
 
   #in {
     background: var(--panel);
@@ -579,6 +603,7 @@
       <button id="conv" title="Detecta la entrada: XML→JSON o JSON→XML">🔁 XML ⇄ JSON</button>
       <button id="csv" title="Tabula el elemento repetido dominante: atributos e hijos simples como columnas">📊 XML → CSV</button>
       <button id="useOut" title="Usa la salida actual como nueva entrada para encadenar operaciones">⬆️ Reusar salida</button>
+      <button id="cmp" title="Diff semántico entre dos XML: ignora orden de atributos y espacios no significativos">🆚 Comparar</button>
       <button id="toggleView" title="Ctrl+B — alterna Resaltada / Texto / Árbol">👁️ Vista: Resaltada</button>
       <button id="copy">📋 Copiar</button>
       <select id="copyAs" title="Formato al copiar la salida">
@@ -678,7 +703,7 @@
     </div>
 
     <div class="panel">
-      <div class="panel-header">✅ Salida Formateada</div>
+      <div class="panel-header" id="outHeader">✅ Salida Formateada</div>
       <div class="editor-wrap">
         <div class="gutter" id="gutterOut">1</div>
         <textarea id="out" class="viewer" wrap="off" placeholder="El resultado aparecerá aquí..."></textarea>
@@ -855,6 +880,7 @@
   }
 
   function renderOutput(text){
+    if (compareMode) exitCompareMode(); // cualquier operación que escriba la salida cancela el modo comparar
     lastOutputText = text || "";
     if (viewMode === "hl") {
       outHtml.innerHTML = highlightXML(lastOutputText);
@@ -1240,6 +1266,76 @@
     return lines.join("\n");
   }
 
+  // --- Diff semántico de XMLs (v2.6) ---
+  // Compara dos documentos ignorando orden de atributos y espacios no
+  // significativos. Los hijos se emparejan por nombre y posición entre
+  // hermanos del mismo nombre. Devuelve un array de líneas:
+  //   ➕ añadido en B · ➖ solo en A · ✏️ modificado
+  const DIFF_MAX = 1000;
+  function diffXML(xmlA, xmlB){
+    const parse = (s, label) => {
+      const d = new DOMParser().parseFromString(s, "application/xml");
+      if (d.querySelector("parsererror"))
+        throw new Error(parseXMLError(d).replace("❌", `❌ XML ${label}:`));
+      return d;
+    };
+    const docA = parse(xmlA, "A"), docB = parse(xmlB, "B");
+    const diffs = [];
+    const push = line => { if (diffs.length < DIFF_MAX) diffs.push(line); };
+
+    const ownText = el => {
+      let t = "";
+      for (const ch of el.childNodes)
+        if (ch.nodeType === Node.TEXT_NODE || ch.nodeType === Node.CDATA_SECTION_NODE) t += ch.nodeValue;
+      return t.replace(/\s+/g, " ").trim();
+    };
+
+    function walk(a, b, path){
+      if (diffs.length >= DIFF_MAX) return;
+
+      // Atributos, sin importar el orden
+      const aAttrs = {}, bAttrs = {};
+      for (const at of a.attributes) aAttrs[at.name] = at.value;
+      for (const at of b.attributes) bAttrs[at.name] = at.value;
+      for (const k of new Set([...Object.keys(aAttrs), ...Object.keys(bAttrs)])) {
+        if (!(k in bAttrs))      push(`➖ ${path}/@${k} — atributo eliminado (era "${aAttrs[k]}")`);
+        else if (!(k in aAttrs)) push(`➕ ${path}/@${k} — atributo añadido ("${bAttrs[k]}")`);
+        else if (aAttrs[k] !== bAttrs[k]) push(`✏️ ${path}/@${k} — "${aAttrs[k]}" → "${bAttrs[k]}"`);
+      }
+
+      // Texto propio normalizado
+      const tA = ownText(a), tB = ownText(b);
+      if (tA !== tB) push(`✏️ ${path} — texto: "${tA}" → "${tB}"`);
+
+      // Hijos agrupados por nombre, emparejados por posición
+      const group = el => {
+        const g = {};
+        for (let ch = el.firstElementChild; ch; ch = ch.nextElementSibling)
+          (g[ch.nodeName] = g[ch.nodeName] || []).push(ch);
+        return g;
+      };
+      const gA = group(a), gB = group(b);
+      for (const name of new Set([...Object.keys(gA), ...Object.keys(gB)])) {
+        const listA = gA[name] || [], listB = gB[name] || [];
+        const n = Math.max(listA.length, listB.length);
+        for (let i = 0; i < n; i++) {
+          const p = `${path}/${name}` + (n > 1 || listA.length !== listB.length ? `[${i + 1}]` : "");
+          if (i >= listA.length)      push(`➕ ${p} — elemento añadido`);
+          else if (i >= listB.length) push(`➖ ${p} — elemento eliminado`);
+          else walk(listA[i], listB[i], p);
+        }
+      }
+    }
+
+    const rootA = docA.documentElement, rootB = docB.documentElement;
+    if (rootA.nodeName !== rootB.nodeName)
+      push(`✏️ / — elemento raíz: <${rootA.nodeName}> → <${rootB.nodeName}>`);
+    walk(rootA, rootB, "/" + rootA.nodeName);
+
+    if (diffs.length >= DIFF_MAX) diffs.push(`… comparación truncada en ${DIFF_MAX} diferencias`);
+    return diffs;
+  }
+
   // --- Vista de árbol colapsable (solo lectura, con <details> nativo) ---
   function treeNodeHTML(el){
     let attrs = "";
@@ -1571,6 +1667,45 @@
   $("#replAll").onclick = () => replaceInInput(true);
   $("#replFind").addEventListener("keydown", e => { if (e.key === "Enter") replaceInInput(false); });
 
+  // --- Modo comparar: el panel derecho recibe el XML B, luego se ejecuta el diff ---
+  let compareMode = false, preCompareView = "hl";
+  function exitCompareMode(){
+    compareMode = false;
+    $("#cmp").textContent = "🆚 Comparar";
+    $("#outHeader").textContent = "✅ Salida Formateada";
+    outTa.placeholder = "El resultado aparecerá aquí...";
+    setViewNoRender(preCompareView); // restaurar la vista previa al modo comparar
+    setDisableToggleView(false);
+  }
+  $("#cmp").onclick = () => {
+    if (!compareMode) {
+      if (!inTa.value.trim()) { showError("⚠️ Pon el XML A en la entrada antes de comparar."); return; }
+      clearError();
+      compareMode = true;
+      preCompareView = viewMode;
+      setViewNoRender("txt");
+      setDisableToggleView(true, "Comparando");
+      outTa.value = "";
+      outTa.placeholder = "Pega aquí el XML B y vuelve a pulsar el botón...";
+      $("#cmp").textContent = "🆚 Ejecutar diff";
+      $("#outHeader").textContent = "🆚 XML B — pega aquí el documento a comparar";
+      outTa.focus();
+      return;
+    }
+    const a = inTa.value, b = outTa.value;
+    if (!b.trim()) { showError("⚠️ Pega el XML B en el panel derecho."); return; }
+    clearError();
+    try {
+      const lines = diffXML(a, b);
+      exitCompareMode();
+      renderOutput(lines.length
+        ? `🆚 ${lines.length} diferencia(s)\n\n` + lines.join("\n")
+        : "✅ Los documentos son semánticamente equivalentes (ignorando orden de atributos y espacios no significativos).");
+    } catch(e) {
+      showError(e.message);
+    }
+  };
+
   $("#copy").onclick = async () => {
     try{
       const lang = $("#copyAs").value;
@@ -1653,6 +1788,7 @@
     $("#searchCount").textContent = "";
     $("#liveStatus").textContent = "";
     $("#liveStatus").className = "";
+    if (compareMode) exitCompareMode();
     setDisableToggleView(false);
     setViewNoRender(viewMode);
     const btn = $("#clear");
@@ -1817,7 +1953,7 @@
   // API pública: usada por tests.html (suite de regresión, solo desarrollo)
   // y disponible en consola para uso avanzado
   window.XMLShield = {
-    prettyFormat, minify, xmlToJson, jsonToXml, xmlToCsv, xpathQuery,
+    prettyFormat, minify, xmlToJson, jsonToXml, xmlToCsv, xpathQuery, diffXML,
     highlightXML, asEscapedString, buildTreeHTML
   };
 })();
