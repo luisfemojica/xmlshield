@@ -4,7 +4,8 @@
 
 XMLShield es una herramienta de formateo y minificación de XML que funciona completamente en tu navegador, sin enviar datos a ningún servidor. Diseñada en respuesta a preocupaciones sobre la seguridad de herramientas online, XMLShield te da control total sobre tus archivos XML sensibles.
 
-[![Version](https://img.shields.io/badge/version-2.0-blue.svg)](https://github.com/luisfemojica/xmlshield/releases)
+[![Version](https://img.shields.io/badge/version-2.7-blue.svg)](https://github.com/luisfemojica/xmlshield/releases)
+[![Tests](https://github.com/luisfemojica/xmlshield/actions/workflows/tests.yml/badge.svg)](https://github.com/luisfemojica/xmlshield/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/license-Public%20Domain-green.svg)](LICENSE)
 [![Live Demo](https://img.shields.io/badge/demo-online-brightgreen.svg)](https://luisfemojica.github.io/xmlshield/)
 [![No Dependencies](https://img.shields.io/badge/dependencies-0-orange.svg)](index.html)
@@ -99,8 +100,12 @@ XMLShield es una herramienta de formateo y minificación de XML que funciona com
 | `Ctrl + Enter` | Formatear XML |
 | `Ctrl + M` | Minificar XML |
 | `Ctrl + B` | Cambiar vista (Resaltada/Texto/Árbol) |
+| `Ctrl + O` | Abrir archivo |
+| `Ctrl + F` | Buscar en la salida |
+| `Ctrl + H` | Buscar y reemplazar en la entrada |
 | `Ctrl + L` | Limpiar editores |
 | `Ctrl + G` | Ir a línea específica |
+| `Tab` (en el editor) | Insertar sangría |
 | `Ctrl + Z` | Deshacer (fuera del editor) |
 | `Ctrl + Y` | Rehacer (fuera del editor) |
 
@@ -260,7 +265,19 @@ Refactorización completa con diseño moderno, panel dividido, gradientes, modo 
 
 - ✅ Diff/comparación semántica de XMLs (ignora orden de atributos y espacios)
 
-**🎉 Roadmap v2.x completado de principio a fin** — ~1955 líneas | ~72KB (límite duro: 100KB) | 68 tests de regresión.
+### v2.7 - "Refinement" ✅ COMPLETADO
+**Fecha:** Junio 2026
+
+- ✅ Layout móvil real: paneles apilados y página con scroll (antes los editores quedaban inusables)
+- ✅ Botón "📄 Ejemplo" y preset `?demo=1` para onboarding
+- ✅ Formatear/Minificar también embellecen y compactan JSON
+- ✅ La línea del error se marca en rojo en el gutter
+- ✅ Árbol interactivo: contador de hijos y click en un tag → su ruta XPath
+- ✅ Modo comparar acepta abrir/arrastrar archivo para el XML B
+- ✅ KPIs con unidades legibles (B/KB/MB), favicon, atajos Ctrl+O/F/H y Tab con sangría
+- ✅ CI en GitHub Actions: la suite corre headless en cada PR
+
+**🎉 Roadmap v2.x completado de principio a fin** — ~2100 líneas | ~80KB (límite duro: 100KB) | 77 tests de regresión con CI.
 
 ### v3.0+ - "XMLShield Extended" 🔮 2027+
 **Proyecto separado** con features avanzadas:
@@ -373,6 +390,17 @@ Para features más avanzadas, considera XMLShield Extended (v3.0+) o herramienta
 ---
 
 ## 📝 Changelog
+
+### v2.7 - Junio 2026
+- ✅ Layout móvil real: paneles apilados a ancho completo y página con scroll
+- ✅ Botón "📄 Ejemplo" en el panel de entrada + preset `?demo=1`
+- ✅ Formatear y Minificar detectan JSON y lo embellecen/compactan
+- ✅ La validación en vivo marca la línea del error en rojo en el gutter
+- ✅ Árbol interactivo: contador de hijos y click en un tag copia su ruta XPath al campo de consulta
+- ✅ El modo comparar acepta abrir o arrastrar archivo para el XML B
+- ✅ KPIs con unidades legibles (B/KB/MB), favicon inline, atajos Ctrl+O/F/H y Tab con sangría
+- ✅ CI con GitHub Actions: los 77 tests corren headless en cada push y PR
+- ✅ Screenshot del README regenerado con la app actual
 
 ### v2.6 - Junio 2026
 - ✅ Diff semántico entre dos XML con rutas tipo XPath y marcadores ➕/➖/✏️ (ignora orden de atributos y espacios)

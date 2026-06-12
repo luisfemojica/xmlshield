@@ -35,9 +35,11 @@ python -m http.server 8741
 
 All tests must pass before committing changes to `index.html`.
 
+CI: `.github/workflows/tests.yml` runs the full suite headless (Playwright + Chromium, via `.github/run-tests.mjs`) on every push to main and every PR.
+
 ## Architecture
 
-Everything is in `index.html` (~1955 lines): CSS in `<style>`, HTML markup in `<body>`, and JavaScript in `<script>`. No modules, no bundler.
+Everything is in `index.html` (~2100 lines): CSS in `<style>`, HTML markup in `<body>`, and JavaScript in `<script>`. No modules, no bundler.
 
 ### Key JavaScript Functions
 
@@ -62,6 +64,8 @@ Everything is in `index.html` (~1955 lines): CSS in `<style>`, HTML markup in `<
 | `loadFile(f)` | Shared file loader for drag & drop and the Open button |
 | `liveValidate()` | Debounced ✓/✗ indicator in the input header (XML or JSON, paused >2MB) |
 | `savePrefs()` / `loadPrefs()` | Opt-in config persistence in localStorage (`xmlshield-prefs`) |
+| `fmtBytes(n)` | Human-readable sizes for the KPI row (B/KB/MB) |
+| `markGutterErrorLine(line)` | Paints the live-validation error line red in the input gutter |
 
 ### Browser APIs Used
 
