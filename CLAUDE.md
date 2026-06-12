@@ -37,7 +37,7 @@ All tests must pass before committing changes to `index.html`.
 
 ## Architecture
 
-Everything is in `index.html` (~1600 lines): CSS in `<style>`, HTML markup in `<body>`, and JavaScript in `<script>`. No modules, no bundler.
+Everything is in `index.html` (~1825 lines): CSS in `<style>`, HTML markup in `<body>`, and JavaScript in `<script>`. No modules, no bundler.
 
 ### Key JavaScript Functions
 
@@ -52,6 +52,8 @@ Everything is in `index.html` (~1600 lines): CSS in `<style>`, HTML markup in `<
 | `collectStats(doc)` | Computes element/attribute/depth stats from a parsed doc |
 | `updateGutter(gutter, text)` | Rebuilds line-number gutter (auto-hidden above 30k lines) |
 | `xmlToJson(xml)` / `jsonToXml(json)` | XML ⇄ JSON conversion (`@attr`, `#text`, arrays for repeats) |
+| `xmlToCsv(xml)` | Tabulates the dominant repeated element (RFC 4180 escaping) |
+| `xpathQuery(xml, expr)` | XPath via native `document.evaluate()`; returns string array |
 | `buildTreeHTML(xml)` | Read-only collapsible tree view using native `<details>` |
 | `applySearch()` | Highlights search matches in the highlighted view (max 500) |
 | `applyTheme(name)` / `applyURLPreset()` | Visual themes and URL-based config presets |

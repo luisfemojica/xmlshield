@@ -25,6 +25,9 @@ XMLShield es una herramienta de formateo y minificación de XML que funciona com
 - ✨ **Formateo XML** con indentación configurable (espacios o tabs)
 - 📦 **Minificación inteligente** con opciones avanzadas
 - 🔁 **Conversión XML ⇄ JSON** con autodetección de la entrada
+- 📊 **Conversión XML → CSV** para datos tabulares (detecta el elemento repetido)
+- 🧭 **XPath queries** con `document.evaluate()` nativo — `//tag[@attr='x']`, `count()`, etc.
+- ♻️ **Buscar y reemplazar** en la entrada, integrado con Deshacer
 - 🎨 **Resaltado de sintaxis** sin dependencias externas
 - 👁️ **Vista triple** - Sintaxis resaltada, texto plano o árbol colapsable
 - 🔍 **Búsqueda con highlight** y navegación entre coincidencias
@@ -243,13 +246,13 @@ Refactorización completa con diseño moderno, panel dividido, gradientes, modo 
 - ✅ Tema automático según el sistema (`prefers-color-scheme`)
 - ✅ Recordar configuración (opt-in, 100% local)
 
-### v2.5 - "Power Tools" 📅 Q3 2026
-**Fecha estimada:** Agosto-Septiembre 2026
+### v2.5 - "Power Tools" ✅ COMPLETADO
+**Fecha:** Junio 2026 (adelantado sobre Q3)
 
-- 🔲 XPath queries (con `document.evaluate()` nativo del navegador)
-- 🔲 Buscar y reemplazar en la entrada
-- 🔲 Conversión XML → CSV para datos tabulares
-- 🔲 Ordenar atributos y eliminar comentarios al minificar (opciones)
+- ✅ XPath queries (con `document.evaluate()` nativo del navegador)
+- ✅ Buscar y reemplazar en la entrada (integrado con Undo)
+- ✅ Conversión XML → CSV para datos tabulares (escapado RFC 4180)
+- ✅ Ordenar atributos y eliminar comentarios al minificar (opciones)
 
 ### v2.6 - "Compare" 📅 Q4 2026
 **Fecha estimada:** Octubre-Diciembre 2026
@@ -323,10 +326,7 @@ Este proyecto mantiene documentación exhaustiva para guiar su desarrollo:
 - Vista de árbol navegable
 - Temas adicionales
 
-### 🔨 En Roadmap (v2.4-v2.6)
-- Bugfixes + harness de tests de regresión
-- Validación en vivo, abrir archivo (móvil), encadenar operaciones
-- XPath queries, buscar y reemplazar, XML → CSV
+### 🔨 En Roadmap (v2.6)
 - Diff/comparación semántica de XMLs
 
 ### 🤔 Bajo Evaluación (v3.0+)
@@ -370,6 +370,13 @@ Para features más avanzadas, considera XMLShield Extended (v3.0+) o herramienta
 ---
 
 ## 📝 Changelog
+
+### v2.5 - Junio 2026
+- ✅ XPath queries sobre la entrada con resultados en la salida (`//tag`, predicados, `count()`, `//@attr`, `text()`)
+- ✅ Buscar y reemplazar en la entrada: siguiente desde el cursor o todas, con Undo
+- ✅ Conversión XML → CSV: tabula el elemento repetido dominante con escapado RFC 4180
+- ✅ Opción "Ordenar atributos" (formatear y minificar)
+- ✅ Opción "Quitar comentarios" al minificar
 
 ### v2.4 - Junio 2026
 - ✅ Bugfix: la declaración XML y los comentarios top-level ya no se pierden al formatear/minificar

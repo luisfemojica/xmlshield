@@ -117,13 +117,13 @@ XMLShield es una herramienta de formateo y minificación de XML que funciona **1
 - ✅ **Tema automático** vía `prefers-color-scheme`
 - ✅ **Recordar configuración** (opt-in explícito, `localStorage`, 100% local)
 
-#### 🟣 v2.5 (Power Tools)
-**Estimado:** 3-4 semanas | **Complejidad:** Media | **Líneas:** +250-330
+#### 🟣 v2.5 (Power Tools) ✅ COMPLETADO
+**Estimado:** 3-4 semanas | **Complejidad:** Media | **Líneas:** +220
 
-- 🔲 **XPath queries** — reevaluado: `document.evaluate()` es nativo del navegador, solo requiere UI (~150 líneas). Pasa el Test de 4 Preguntas 4/4.
-- 🔲 **Buscar y reemplazar en la entrada** con integración a Undo
-- 🔲 **Conversión XML → CSV** para exportaciones tabulares (sin inferencia compleja de schema)
-- 🔲 **Opciones de formato extra**: ordenar atributos, eliminar comentarios al minificar
+- ✅ **XPath queries** — reevaluado: `document.evaluate()` es nativo del navegador, solo requirió UI (~70 líneas). Pasa el Test de 4 Preguntas 4/4.
+- ✅ **Buscar y reemplazar en la entrada** con integración a Undo
+- ✅ **Conversión XML → CSV** para exportaciones tabulares (sin inferencia compleja de schema, escapado RFC 4180)
+- ✅ **Opciones de formato extra**: ordenar atributos, eliminar comentarios al minificar
 
 #### 🔴 v2.6 (Compare)
 **Estimado:** 1-2 meses | **Complejidad:** Alta | **Líneas:** +300-400
