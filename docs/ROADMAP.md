@@ -3,7 +3,7 @@
 
 > **Documento vivo** - Se actualiza cada release
 > **Última revisión:** Junio 2026
-> **Versión actual:** v2.7 — 🎉 Roadmap v2.x COMPLETADO (v2.0 a v2.7)
+> **Versión actual:** v2.8 — 🎉 Roadmap v2.x COMPLETADO (v2.0 a v2.8)
 
 ---
 
@@ -356,6 +356,43 @@ Ctrl+O (abrir), Ctrl+F (buscar en salida), Ctrl+H (reemplazar), y Tab inserta sa
 
 ---
 
+### v2.8 - "JSON First-Class" ✅ COMPLETADO
+**Fecha de release:** Junio 2026
+**Esfuerzo:** 2-3 días
+**Prioridad:** Alta (petición directa del mantenedor)
+
+#### Contexto
+Desde v2.7 la app formatea, minifica y valida JSON, pero el resaltado y el árbol seguían siendo solo-XML: el JSON salía en texto plano sin colores y la vista Árbol mostraba un aviso de error.
+
+#### Features Implementadas
+
+##### 1. Resaltado de sintaxis JSON ✅ IMPLEMENTADO
+**Complejidad:** Media | **Líneas:** ~25
+
+`highlightJSON()` tokeniza el texto crudo (maneja comillas escapadas) y reutiliza las clases de color existentes: claves `.attr`, strings `.value`, números `.tag`, booleanos/null `.comment`. Funciona con los 5 temas sin CSS nuevo. `renderOutput` detecta el tipo de salida por prefijo (`{` o `[`).
+
+##### 2. Vista de árbol para JSON ✅ IMPLEMENTADO
+**Complejidad:** Media | **Líneas:** ~20
+
+`jsonTreeHTML()`: objetos `{ }` y arrays `[ ]` colapsables con `<details>` nativo, contador de claves/elementos por nodo, hojas con su valor tipado. `buildTreeHTML` enruta según el tipo de salida.
+
+##### 3. Estadísticas para JSON ✅ IMPLEMENTADO
+**Complejidad:** Baja | **Líneas:** ~15
+
+`collectStatsJSON()`: valores totales, claves de objeto y profundidad en los mismos KPIs (antes quedaban en "–" al formatear JSON).
+
+##### 4. Descarga con extensión correcta ✅ IMPLEMENTADO
+**Complejidad:** Baja | **Líneas:** ~10
+
+El botón Descargar elegía siempre `.xml`: ahora `.json` para salidas JSON, `.csv` tras convertir a CSV, `.txt` para reportes de diff/XPath, con el MIME correspondiente.
+
+#### Métricas Alcanzadas v2.8
+- **Tamaño:** ~83KB (dentro del límite duro de 100KB)
+- **Líneas:** ~2177 (bajo el techo de ~2500)
+- **Tests:** 85 casos pasando (8 nuevos)
+
+---
+
 ## 🔮 Visión Futura (Post v2.6)
 
 ### v3.0 - "XMLShield Extended" — ❌ NO-GO (decisión: Junio 2026)
@@ -382,6 +419,7 @@ Las dos features de v3.0 que sí cabían en la filosofía (XPath y Diff) ya fuer
 │          │ v2.5 ✅  │          │          │
 │          │ v2.6 ✅  │          │          │
 │          │ v2.7 ✅  │          │          │
+│          │ v2.8 ✅  │          │          │
 └──────────┴──────────┴──────────┴──────────┘
 ```
 
@@ -429,6 +467,12 @@ Las dos features de v3.0 que sí cabían en la filosofía (XPath y Diff) ya fuer
 - [x] Cada fix/quick win con su test de regresión
 - [x] Archivo final <100KB y <2500 líneas (~80KB, ~2100 líneas)
 
+### v2.8 Success Criteria
+- [x] JSON formateado se ve resaltado en la vista Resaltada (5 temas)
+- [x] La vista Árbol renderiza JSON colapsable en vez de mostrar un aviso
+- [x] KPIs de estadísticas pobladas también para JSON
+- [x] Descargar produce .json/.csv/.txt según el tipo real de la salida
+
 ---
 
 ## 🚫 Features Descartadas
@@ -454,6 +498,7 @@ Las dos features de v3.0 que sí cabían en la filosofía (XPath y Diff) ya fuer
 | v2.5 | 100% | 4/4 | ~1825 | ~66KB | ✅ Released |
 | v2.6 | 100% | 1/1 | ~1955 | ~72KB | ✅ Released |
 | v2.7 | 100% | 11/11 | ~2100 | ~80KB | ✅ Released |
+| v2.8 | 100% | 4/4 | ~2177 | ~83KB | ✅ Released |
 
 ---
 

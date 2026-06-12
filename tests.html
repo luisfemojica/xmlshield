@@ -281,8 +281,40 @@
       assertEq(X.fmtBytes(3 * 1024 * 1024), "3.0 MB");
     });
 
-    test("buildTreeHTML: salida no-XML muestra aviso en vez de romper", () => {
-      assertTrue(X.buildTreeHTML('{"json": true}').includes("⚠️"));
+    test("buildTreeHTML: salida no parseable muestra aviso en vez de romper", () => {
+      assertTrue(X.buildTreeHTML("esto no es xml ni json").includes("⚠️"));
+    });
+
+    // --- v2.8: JSON de primera clase ---
+    test("highlightJSON: claves, strings, números y booleanos con clases distintas", () => {
+      const h = X.highlightJSON('{"clave": "texto", "n": 42, "ok": true, "nada": null}');
+      assertTrue(h.includes('<span class="attr">&quot;clave&quot;</span>'), "clave sin .attr: " + h);
+      assertTrue(h.includes('<span class="value">&quot;texto&quot;</span>'), "string sin .value: " + h);
+      assertTrue(h.includes('<span class="tag">42</span>'), "número sin .tag: " + h);
+      assertTrue(h.includes('<span class="comment">true</span>'), "booleano sin .comment: " + h);
+      assertTrue(h.includes('<span class="comment">null</span>'), "null sin .comment: " + h);
+    });
+
+    test("highlightJSON: escapa HTML y respeta comillas escapadas", () => {
+      const h = X.highlightJSON('{"a": "<b> \\" &"}');
+      assertTrue(h.includes("&lt;b&gt;"), "HTML sin escapar: " + h);
+      assertTrue(!h.includes("<b>"), "HTML crudo presente");
+    });
+
+    test("buildTreeHTML: objeto JSON como árbol con contador de claves", () => {
+      const t = X.buildTreeHTML('{"a": 1, "b": {"c": "x"}}');
+      assertTrue(t.includes("<details"), "sin details: " + t);
+      assertTrue(t.includes("2 clave(s)"), "sin contador: " + t);
+      assertTrue(t.includes('<span class="attr">a</span>'), "clave sin estilo: " + t);
+    });
+
+    test("buildTreeHTML: array JSON con contador de elementos", () => {
+      const t = X.buildTreeHTML('[1, 2, 3]');
+      assertTrue(t.includes("3 elemento(s)"), "sin contador de array: " + t);
+    });
+
+    test("buildTreeHTML: JSON inválido muestra aviso", () => {
+      assertTrue(X.buildTreeHTML('{"roto": ').includes("⚠️"));
     });
 
     // --- v2.5: XPath ---
@@ -544,6 +576,40 @@
       inp.setSelectionRange(0, 0);
       inp.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab", bubbles: true, cancelable: true }));
       assertTrue(inp.value.startsWith("  "), "no insertó sangría: " + JSON.stringify(inp.value));
+    });
+
+    test("UI: formatear JSON lo muestra resaltado en la vista Resaltada", async () => {
+      const inp = idoc.getElementById("in");
+      inp.value = '{"clave": "valor", "n": 7}';
+      inp.dispatchEvent(new Event("input"));
+      idoc.getElementById("fmt").click();
+      await wait(400);
+      const html = idoc.querySelector("#outHtml .syntax").innerHTML;
+      assertTrue(html.includes('class="attr"') && html.includes('class="value"'),
+        "JSON sin resaltar: " + html.slice(0, 120));
+    });
+
+    test("UI: la vista Árbol funciona con salida JSON", async () => {
+      // Viene del test anterior: la salida es JSON formateado, vista hl
+      idoc.getElementById("toggleView").click(); // hl -> txt
+      await wait(250);
+      idoc.getElementById("toggleView").click(); // txt -> tree
+      await wait(250);
+      const tree = idoc.getElementById("outTree").innerHTML;
+      assertTrue(tree.includes("<details") && tree.includes("clave(s)"),
+        "árbol JSON no renderizado: " + tree.slice(0, 120));
+      idoc.getElementById("toggleView").click(); // tree -> hl (restaurar)
+      await wait(250);
+    });
+
+    test("UI: formatear JSON actualiza las estadísticas", async () => {
+      const inp = idoc.getElementById("in");
+      inp.value = '{"a": 1, "b": [1, 2]}';
+      inp.dispatchEvent(new Event("input"));
+      idoc.getElementById("fmt").click();
+      await wait(400);
+      assertEq(idoc.getElementById("statAttrs").textContent, "2", "claves");
+      assertEq(idoc.getElementById("statDepth").textContent, "3", "profundidad");
     });
 
     test("UI: los KPIs muestran unidades legibles", async () => {
