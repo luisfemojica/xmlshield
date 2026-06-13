@@ -305,7 +305,7 @@
       const t = X.buildTreeHTML('{"a": 1, "b": {"c": "x"}}');
       assertTrue(t.includes("<details"), "sin details: " + t);
       assertTrue(t.includes("2 clave(s)"), "sin contador: " + t);
-      assertTrue(t.includes('<span class="attr">a</span>'), "clave sin estilo: " + t);
+      assertTrue(/class="attr[^"]*"[^>]*>a<\/span>/.test(t), "clave sin estilo: " + t);
     });
 
     test("buildTreeHTML: array JSON con contador de elementos", () => {
@@ -315,6 +315,25 @@
 
     test("buildTreeHTML: JSON inválido muestra aviso", () => {
       assertTrue(X.buildTreeHTML('{"roto": ').includes("⚠️"));
+    });
+
+    // --- v2.9: JSONPath en el árbol JSON ---
+    test("buildTreeHTML: claves JSON con ruta JSONPath (objetos y arrays)", () => {
+      const t = X.buildTreeHTML('{"tienda": {"libros": [{"titulo": "x"}]}}');
+      assertTrue(t.includes('data-xp="$.tienda"'), "sin ruta raíz: " + t);
+      assertTrue(t.includes('data-xp="$.tienda.libros[0].titulo"'), "sin ruta anidada con índice: " + t);
+    });
+
+    // --- v2.9: compartir documento por URL (gzip nativo) ---
+    test("gzipB64/gunzipB64: roundtrip con unicode", async () => {
+      const original = '<a título="canción">😀 ñandú &amp; más</a>';
+      const back = await X.gunzipB64(await X.gzipB64(original));
+      assertEq(back, original);
+    });
+
+    test("gzipB64: produce base64url (sin +, / ni =)", async () => {
+      const payload = await X.gzipB64("<root>" + "dato ".repeat(100) + "</root>");
+      assertTrue(!/[+/=]/.test(payload), "caracteres no aptos para URL: " + payload.slice(0, 40));
     });
 
     // --- v2.5: XPath ---
@@ -510,6 +529,7 @@
 
     test("UI: Reemplazar todo actúa sobre la entrada e integra Undo", async () => {
       const inp = idoc.getElementById("in");
+      idoc.getElementById("replRegex").checked = false;
       inp.value = "<a><b>foo</b><c>foo</c></a>";
       inp.dispatchEvent(new Event("input"));
       idoc.getElementById("replFind").value = "foo";
@@ -517,6 +537,44 @@
       idoc.getElementById("replAll").click();
       assertEq(inp.value, "<a><b>bar</b><c>bar</c></a>");
       assertTrue(idoc.getElementById("replCount").textContent.includes("2"));
+    });
+
+    test("UI: reemplazo con regex y grupos $1/$2", () => {
+      const inp = idoc.getElementById("in");
+      idoc.getElementById("replRegex").checked = true;
+      inp.value = "a1 b2 c3";
+      inp.dispatchEvent(new Event("input"));
+      idoc.getElementById("replFind").value = "([a-z])(\\d)";
+      idoc.getElementById("replWith").value = "$2$1";
+      idoc.getElementById("replAll").click();
+      assertEq(inp.value, "1a 2b 3c");
+      assertTrue(idoc.getElementById("replCount").textContent.includes("3"));
+      idoc.getElementById("replRegex").checked = false;
+    });
+
+    test("UI: regex inválida muestra aviso sin romper", () => {
+      idoc.getElementById("replRegex").checked = true;
+      idoc.getElementById("replFind").value = "([sin-cerrar";
+      idoc.getElementById("replAll").click();
+      assertTrue(idoc.getElementById("replCount").textContent.includes("inválida"));
+      idoc.getElementById("replRegex").checked = false;
+      idoc.getElementById("replFind").value = "";
+    });
+
+    test("UI: un enlace #doc= carga el documento compartido en la entrada", async () => {
+      const xml = '<compartido vía="url">privacidad intacta</compartido>';
+      const payload = await X.gzipB64(xml);
+      iwin.location.hash = "#doc=" + payload;
+      await X.loadDocFromHash();
+      assertEq(idoc.getElementById("in").value, xml);
+      iwin.location.hash = "";
+    });
+
+    test("UI: accesibilidad — roles ARIA y foco visible presentes", () => {
+      assertEq(idoc.getElementById("err").getAttribute("role"), "alert");
+      assertEq(idoc.getElementById("liveStatus").getAttribute("aria-live"), "polite");
+      assertEq(idoc.getElementById("gutterIn").getAttribute("aria-hidden"), "true");
+      assertTrue(!!idoc.getElementById("searchPrev").getAttribute("aria-label"), "botón sin aria-label");
     });
 
     test("UI: modo comparar — pegar B y ejecutar diff muestra las diferencias", async () => {

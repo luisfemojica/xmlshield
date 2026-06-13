@@ -594,6 +594,15 @@
   mark.search-hit.current { background: var(--orange); color: #fff; outline: 2px solid #ff5722; }
 
   /* ============================================================
+     ACCESIBILIDAD: foco visible por teclado en todos los temas
+  ============================================================ */
+  button:focus-visible, select:focus-visible, input:focus-visible,
+  textarea:focus-visible, summary:focus-visible {
+    outline: 3px solid #ffd54f;
+    outline-offset: 2px;
+  }
+
+  /* ============================================================
      TEMAS ADICIONALES (High Contrast, Solarized, Monokai)
      Cada tema solo define variables; las reglas compartidas
      de abajo las aplican. Van al final para ganar en cascada.
@@ -637,7 +646,7 @@
       <button id="cmp" title="Diff semántico entre dos XML: ignora orden de atributos y espacios no significativos">🆚 Comparar</button>
       <button id="toggleView" title="Ctrl+B — alterna Resaltada / Texto / Árbol">👁️ Vista: Resaltada</button>
       <button id="copy">📋 Copiar</button>
-      <select id="copyAs" title="Formato al copiar la salida">
+      <select id="copyAs" title="Formato al copiar la salida" aria-label="Formato al copiar la salida">
         <option value="plain">como texto</option>
         <option value="js">string JS</option>
         <option value="python">string Python</option>
@@ -645,7 +654,7 @@
       </select>
       <button id="download">💾 Descargar</button>
       <button id="clear" title="Ctrl+L">🧹 Limpiar</button>
-      <select id="themeSel" title="Tema visual">
+      <select id="themeSel" title="Tema visual" aria-label="Tema visual">
         <option value="claro">🌞 Claro</option>
         <option value="oscuro">🌙 Oscuro</option>
         <option value="hc">⬛ Alto contraste</option>
@@ -679,11 +688,12 @@
       <label class="search-box">🔍
         <input id="search" type="search" placeholder="Buscar en salida...">
       </label>
-      <button class="search-nav" id="searchPrev" title="Coincidencia anterior">▲</button>
-      <button class="search-nav" id="searchNext" title="Coincidencia siguiente">▼</button>
+      <button class="search-nav" id="searchPrev" title="Coincidencia anterior" aria-label="Coincidencia anterior">▲</button>
+      <button class="search-nav" id="searchNext" title="Coincidencia siguiente" aria-label="Coincidencia siguiente">▼</button>
       <span id="searchCount"></span>
       <span class="sep">|</span>
       <button class="search-nav" id="shareCfg" title="Copia un enlace con la configuración actual (sangría, tema, vista...)">🔗 Copiar config</button>
+      <button class="search-nav" id="shareDoc" title="Comprime el documento (gzip nativo del navegador) y copia un enlace que lo lleva en el hash. El hash nunca se envía a ningún servidor: privacidad intacta.">📤 Compartir doc</button>
       <label title="Guarda sangría, opciones, tema y vista en este navegador (localStorage). Nada sale de tu equipo; desmárcalo y se borra.">
         <input id="remember" type="checkbox"> Recordar config
       </label>
@@ -704,6 +714,9 @@
       </label>
       <button class="search-nav" id="replOne" title="Reemplaza la siguiente coincidencia desde el cursor">Reemplazar</button>
       <button class="search-nav" id="replAll" title="Reemplaza todas las coincidencias">Todo</button>
+      <label title="Interpreta el texto a buscar como expresión regular (grupos $1, $2... en el reemplazo)">
+        <input id="replRegex" type="checkbox"> regex
+      </label>
       <span id="replCount"></span>
     </div>
 
@@ -721,14 +734,14 @@
       <span>📏 Profundidad: <strong class="kpi" id="statDepth">–</strong></span>
     </div>
 
-    <div id="err"></div>
+    <div id="err" role="alert"></div>
   </header>
 
   <div class="workspace">
     <div class="panel">
-      <div class="panel-header"><span>📝 Entrada XML (arrastra, abre o pega)</span><span class="ph-right"><span id="liveStatus"></span><button id="demo" class="mini" title="Carga un XML de ejemplo y lo formatea">📄 Ejemplo</button></span></div>
+      <div class="panel-header"><span>📝 Entrada XML (arrastra, abre o pega)</span><span class="ph-right"><span id="liveStatus" role="status" aria-live="polite"></span><button id="demo" class="mini" title="Carga un XML de ejemplo y lo formatea">📄 Ejemplo</button></span></div>
       <div class="editor-wrap">
-        <div class="gutter" id="gutterIn">1</div>
+        <div class="gutter" id="gutterIn" aria-hidden="true">1</div>
         <textarea id="in" wrap="off" placeholder="Pega aquí tu XML o arrastra un archivo .xml..."></textarea>
       </div>
     </div>
@@ -736,7 +749,7 @@
     <div class="panel">
       <div class="panel-header" id="outHeader">✅ Salida Formateada</div>
       <div class="editor-wrap">
-        <div class="gutter" id="gutterOut">1</div>
+        <div class="gutter" id="gutterOut" aria-hidden="true">1</div>
         <textarea id="out" class="viewer" wrap="off" placeholder="El resultado aparecerá aquí..."></textarea>
         <div id="outHtml" class="viewer" style="display:none;"><div class="syntax"></div></div>
         <div id="outTree" class="viewer tree" style="display:none;"></div>
@@ -1456,9 +1469,10 @@
     const countHTML = ` <span class="tree-count">· ${el.children.length} hijo(s)</span>`;
     return `<details open><summary>&lt;${name}${attrs}&gt;${textHTML}${countHTML}</summary>${kids}</details>`;
   }
-  // Árbol para JSON: objetos {} y arrays [] colapsables, hojas con su valor
-  function jsonTreeHTML(label, val){
-    const lbl = label === null ? "" : `<span class="attr">${escapeHTML(label)}</span>: `;
+  // Árbol para JSON: objetos {} y arrays [] colapsables, hojas con su valor.
+  // Cada clave lleva su ruta JSONPath (data-xp); click → portapapeles
+  function jsonTreeHTML(label, val, path){
+    const lbl = label === null ? "" : `<span class="attr xp" data-xp="${escapeHTML(path)}" title="Click: copiar ruta JSONPath">${escapeHTML(label)}</span>: `;
     if (val === null || typeof val !== "object") {
       const cls = typeof val === "string" ? "txt" : "tag";
       return `<div class="tree-leaf">${lbl}<span class="${cls}">${escapeHTML(JSON.stringify(val))}</span></div>`;
@@ -1468,14 +1482,15 @@
     const head = `${lbl}<span class="tag">${isArr ? "[ ]" : "{ }"}</span> <span class="tree-count">· ${entries.length} ${isArr ? "elemento(s)" : "clave(s)"}</span>`;
     if (!entries.length) return `<div class="tree-leaf">${head}</div>`;
     let kids = "";
-    for (const [k, v] of entries) kids += jsonTreeHTML(String(k), v);
+    for (const [k, v] of entries)
+      kids += jsonTreeHTML(String(k), v, isArr ? `${path}[${k}]` : `${path}.${k}`);
     return `<details open><summary>${head}</summary>${kids}</details>`;
   }
 
   function buildTreeHTML(text){
     if (!text.trim()) return "";
     if (outputIsJSON(text)) {
-      try { return jsonTreeHTML(null, JSON.parse(text)); }
+      try { return jsonTreeHTML(null, JSON.parse(text), "$"); }
       catch { return `<div class="tree-leaf">⚠️ La salida actual no es JSON válido — no se puede mostrar como árbol.</div>`; }
     }
     const doc = new DOMParser().parseFromString(text, "application/xml");
@@ -1483,14 +1498,21 @@
       return `<div class="tree-leaf">⚠️ La salida actual no es XML válido — formatea primero para ver el árbol.</div>`;
     return treeNodeHTML(doc.documentElement, "/" + doc.documentElement.nodeName);
   }
-  // Click en un nombre de tag del árbol → usa su ruta en el campo XPath
+  // Click en un nombre de tag/clave del árbol → copia su ruta.
+  // XML (rutas /a/b): además rellena el campo XPath para consultar.
+  // JSON (rutas $.a.b): solo portapapeles (no hay motor JSONPath).
   outTree.addEventListener("click", e => {
     const t = e.target.closest(".xp");
     if (!t) return;
     e.preventDefault(); // no colapsar/expandir el nodo al copiar la ruta
-    $("#xpath").value = t.dataset.xp;
-    $("#xpathCount").textContent = "ruta copiada al campo XPath";
-    if (navigator.clipboard) navigator.clipboard.writeText(t.dataset.xp).catch(() => {});
+    const path = t.dataset.xp;
+    if (path.startsWith("$")) {
+      $("#xpathCount").textContent = "ruta JSONPath copiada";
+    } else {
+      $("#xpath").value = path;
+      $("#xpathCount").textContent = "ruta copiada al campo XPath";
+    }
+    if (navigator.clipboard) navigator.clipboard.writeText(path).catch(() => {});
   });
 
   // --- Búsqueda con highlight en la salida (máx. 500 marcas) ---
@@ -1794,29 +1816,48 @@
   $("#xpathRun").onclick = runXPath;
   $("#xpath").addEventListener("keydown", e => { if (e.key === "Enter") runXPath(); });
 
-  // --- Buscar y reemplazar en la entrada (literal, integrado con Undo) ---
+  // --- Buscar y reemplazar en la entrada (literal o regex, integrado con Undo) ---
   function replaceInInput(all){
     const find = $("#replFind").value;
     const countEl = $("#replCount");
     if (!find) { countEl.textContent = ""; return; }
     const wit = $("#replWith").value;
     const v = inTa.value;
+    const useRe = $("#replRegex").checked;
+    let re = null;
+    if (useRe) {
+      try { re = new RegExp(find, "g"); }
+      catch { countEl.textContent = "✗ regex inválida"; return; }
+    }
 
     if (all) {
-      const count = v.split(find).length - 1;
+      const count = useRe ? (v.match(re) || []).length : v.split(find).length - 1;
       if (!count) { countEl.textContent = "0 coincidencias"; return; }
       saveForUndo();
-      inTa.value = v.split(find).join(wit);
+      inTa.value = useRe ? v.replace(re, wit) : v.split(find).join(wit);
       countEl.textContent = `${count} reemplazo(s)`;
     } else {
       // Siguiente coincidencia desde el cursor, con vuelta al inicio
-      let idx = v.indexOf(find, inTa.selectionEnd);
-      if (idx === -1) idx = v.indexOf(find);
+      let idx = -1, matchLen = 0, replacement = wit;
+      if (useRe) {
+        re.lastIndex = inTa.selectionEnd;
+        let m = re.exec(v);
+        if (!m) { re.lastIndex = 0; m = re.exec(v); }
+        if (m) {
+          idx = m.index;
+          matchLen = m[0].length;
+          replacement = m[0].replace(new RegExp(find), wit); // expande $1, $2...
+        }
+      } else {
+        idx = v.indexOf(find, inTa.selectionEnd);
+        if (idx === -1) idx = v.indexOf(find);
+        matchLen = find.length;
+      }
       if (idx === -1) { countEl.textContent = "0 coincidencias"; return; }
       saveForUndo();
-      inTa.value = v.slice(0, idx) + wit + v.slice(idx + find.length);
+      inTa.value = v.slice(0, idx) + replacement + v.slice(idx + matchLen);
       inTa.focus();
-      inTa.setSelectionRange(idx, idx + wit.length);
+      inTa.setSelectionRange(idx, idx + replacement.length);
       countEl.textContent = "1 reemplazo";
     }
     updateKPIs(inTa.value, lastOutputText);
@@ -1902,6 +1943,63 @@
       showError("No se pudo copiar al portapapeles (permiso del navegador).");
     }
   };
+
+  // --- Compartir documento por URL (gzip nativo + base64url en el hash) ---
+  // El hash nunca se envía al servidor: el documento viaja solo en el enlace.
+  async function gzipB64(text){
+    const stream = new Blob([text]).stream().pipeThrough(new CompressionStream("gzip"));
+    const bytes = new Uint8Array(await new Response(stream).arrayBuffer());
+    let s = "";
+    for (const b of bytes) s += String.fromCharCode(b);
+    return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  async function gunzipB64(b64){
+    const bin = atob(b64.replace(/-/g, "+").replace(/_/g, "/"));
+    const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+    return await new Response(stream).text();
+  }
+  $("#shareDoc").onclick = async () => {
+    const text = inTa.value;
+    if (!text.trim()) { showError("⚠️ No hay documento en la entrada para compartir."); return; }
+    if (typeof CompressionStream === "undefined") {
+      showError("⚠️ Tu navegador no soporta compresión nativa (CompressionStream).");
+      return;
+    }
+    try {
+      const url = location.href.split("#")[0].split("?")[0] + "#doc=" + await gzipB64(text);
+      if (url.length > 60000) {
+        showError("⚠️ El documento es demasiado grande para compartir por URL (máx. ~45KB comprimido).");
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      clearError();
+      const btn = $("#shareDoc");
+      const label = btn.textContent;
+      btn.textContent = "✅ ¡Enlace copiado!";
+      setTimeout(() => btn.textContent = label, 1200);
+    } catch {
+      showError("No se pudo copiar al portapapeles (permiso del navegador).");
+    }
+  };
+  // Al abrir un enlace compartido, el documento del hash se carga en la entrada
+  async function loadDocFromHash(){
+    const m = location.hash.match(/^#doc=([\w\-]+)/);
+    if (!m) return;
+    if (typeof DecompressionStream === "undefined") {
+      showError("⚠️ Tu navegador no soporta descompresión nativa para abrir este enlace.");
+      return;
+    }
+    try {
+      const text = await gunzipB64(m[1]);
+      inTa.value = text;
+      updateKPIs(inTa.value, lastOutputText);
+      updateGutter(gutterIn, text);
+      liveValidate();
+    } catch {
+      showError("⚠️ El enlace compartido está dañado o incompleto.");
+    }
+  }
 
   let searchTimer;
   $("#search").addEventListener("input", () => {
@@ -2165,12 +2263,14 @@
   setView(viewMode);
   updateKPIs("", "");
   updateGutter(gutterIn, "");
+  loadDocFromHash(); // enlaces compartidos: #doc=<gzip+base64url>
 
   // API pública: usada por tests.html (suite de regresión, solo desarrollo)
   // y disponible en consola para uso avanzado
   window.XMLShield = {
     prettyFormat, minify, xmlToJson, jsonToXml, xmlToCsv, xpathQuery, diffXML,
-    highlightXML, highlightJSON, asEscapedString, buildTreeHTML, fmtBytes
+    highlightXML, highlightJSON, asEscapedString, buildTreeHTML, fmtBytes,
+    gzipB64, gunzipB64, loadDocFromHash
   };
 })();
 </script>

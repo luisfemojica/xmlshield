@@ -152,6 +152,15 @@ El soporte JSON de v2.4-v2.7 (validar, formatear, minificar, convertir) se compl
 - ✅ **Estadísticas para JSON** en los KPIs existentes
 - ✅ **Descarga con extensión correcta** (.json/.csv/.txt según la salida)
 
+#### 🟡 v2.9 (Share & Power Input) ✅ COMPLETADO
+**Estimado:** 3-4 días | **Complejidad:** Media | **Líneas:** +105
+
+- ✅ **Compartir documento por URL** — `CompressionStream` (gzip **nativo** del navegador, 4/4 en el Test de 4 Preguntas) + base64url en el hash, que nunca se envía al servidor. Límite ~45KB comprimido.
+- ✅ **Regex en buscar y reemplazar** con grupos `$1, $2...`
+- ✅ **JSONPath en el árbol JSON** (click en clave → portapapeles)
+- ✅ **Accesibilidad WCAG (primera pasada)**: ARIA en estados dinámicos, foco visible por teclado
+- ❌ **UI bilingüe ES/EN**: descartada por ahora (~100+ strings, riesgo de regresiones); se reconsiderará si el proyecto gana tracción internacional
+
 ---
 
 ## ❌ Fuera del Alcance (v2.x)

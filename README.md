@@ -4,7 +4,7 @@
 
 XMLShield es una herramienta de formateo y minificación de XML que funciona completamente en tu navegador, sin enviar datos a ningún servidor. Diseñada en respuesta a preocupaciones sobre la seguridad de herramientas online, XMLShield te da control total sobre tus archivos XML sensibles.
 
-[![Version](https://img.shields.io/badge/version-2.8-blue.svg)](https://github.com/luisfemojica/xmlshield/releases)
+[![Version](https://img.shields.io/badge/version-2.9-blue.svg)](https://github.com/luisfemojica/xmlshield/releases)
 [![Tests](https://github.com/luisfemojica/xmlshield/actions/workflows/tests.yml/badge.svg)](https://github.com/luisfemojica/xmlshield/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/license-Public%20Domain-green.svg)](LICENSE)
 [![Live Demo](https://img.shields.io/badge/demo-online-brightgreen.svg)](https://luisfemojica.github.io/xmlshield/)
@@ -39,6 +39,9 @@ XMLShield es una herramienta de formateo y minificación de XML que funciona com
 - 📋 **Copiar al portapapeles** como texto o string escapado (JS, Python, Java)
 - 🎨 **5 temas visuales** - Claro, Oscuro, Alto Contraste, Solarized y Monokai (+ tema automático según el sistema)
 - 🔗 **Presets de configuración vía URL** compartibles
+- 📤 **Compartir documento por enlace** - gzip nativo + hash que nunca viaja al servidor
+- ♻️ **Reemplazo con regex** - grupos `$1, $2...` en el reemplazo (opcional)
+- ♿ **Accesible** - roles ARIA, foco visible por teclado en los 5 temas
 - ✓ **Validación en vivo** - Indicador ✓/✗ con línea del error mientras escribes
 - ⬆️ **Encadenar operaciones** - Botón "Reusar salida" (formatear → convertir → minificar)
 - ⌨️ **Atajos de teclado** para flujo de trabajo rápido (incluye Ctrl+G ir a línea)
@@ -285,7 +288,15 @@ Refactorización completa con diseño moderno, panel dividido, gradientes, modo 
 - ✅ Estadísticas para JSON en los KPIs
 - ✅ Descarga con extensión correcta (.json/.csv/.txt)
 
-**🎉 Roadmap v2.x completado de principio a fin** — ~2177 líneas | ~83KB (límite duro: 100KB) | 85 tests de regresión con CI.
+### v2.9 - "Share & Power Input" ✅ COMPLETADO
+**Fecha:** Junio 2026
+
+- ✅ Compartir documento por URL (gzip nativo en el hash, 100% local)
+- ✅ Regex con grupos en buscar y reemplazar
+- ✅ JSONPath al hacer click en el árbol JSON
+- ✅ Accesibilidad: ARIA + foco visible por teclado
+
+**🎉 Roadmap v2.x completado de principio a fin** — ~2277 líneas | ~88KB (límite duro: 100KB) | 92 tests de regresión con CI.
 
 ### v3.0+ - "XMLShield Extended" 🔮 2027+
 **Proyecto separado** con features avanzadas:
@@ -398,6 +409,12 @@ Para features más avanzadas, considera XMLShield Extended (v3.0+) o herramienta
 ---
 
 ## 📝 Changelog
+
+### v2.9 - Junio 2026
+- ✅ Botón "📤 Compartir doc": el documento viaja comprimido (gzip nativo) en el hash del enlace — nunca se envía a ningún servidor
+- ✅ Checkbox "regex" en buscar y reemplazar, con grupos `$1, $2...`
+- ✅ Click en una clave del árbol JSON copia su ruta JSONPath (`$.tienda.libros[0]`)
+- ✅ Accesibilidad: `role="alert"` en errores, `aria-live` en la validación, `aria-label` en iconos, foco visible por teclado
 
 ### v2.8 - Junio 2026
 - ✅ Resaltado de sintaxis para JSON: claves, strings, números y booleanos con colores (5 temas)

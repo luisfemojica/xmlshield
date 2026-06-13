@@ -39,7 +39,7 @@ CI: `.github/workflows/tests.yml` runs the full suite headless (Playwright + Chr
 
 ## Architecture
 
-Everything is in `index.html` (~2180 lines): CSS in `<style>`, HTML markup in `<body>`, and JavaScript in `<script>`. No modules, no bundler.
+Everything is in `index.html` (~2280 lines): CSS in `<style>`, HTML markup in `<body>`, and JavaScript in `<script>`. No modules, no bundler.
 
 ### Key JavaScript Functions
 
@@ -66,6 +66,8 @@ Everything is in `index.html` (~2180 lines): CSS in `<style>`, HTML markup in `<
 | `savePrefs()` / `loadPrefs()` | Opt-in config persistence in localStorage (`xmlshield-prefs`) |
 | `fmtBytes(n)` | Human-readable sizes for the KPI row (B/KB/MB) |
 | `markGutterErrorLine(line)` | Paints the live-validation error line red in the input gutter |
+| `gzipB64(text)` / `gunzipB64(b64)` | Native gzip + base64url for the share-by-URL hash (`#doc=`) |
+| `loadDocFromHash()` | Loads a shared document from `location.hash` on startup |
 
 ### Browser APIs Used
 
