@@ -3,7 +3,7 @@
 
 > **Documento vivo** - Se actualiza cada release
 > **Última revisión:** Junio 2026
-> **Versión actual:** v2.8 — 🎉 Roadmap v2.x COMPLETADO (v2.0 a v2.8)
+> **Versión actual:** v2.9 — 🎉 Roadmap v2.x COMPLETADO (v2.0 a v2.9)
 
 ---
 
@@ -393,6 +393,43 @@ El botón Descargar elegía siempre `.xml`: ahora `.json` para salidas JSON, `.c
 
 ---
 
+### v2.9 - "Share & Power Input" ✅ COMPLETADO
+**Fecha de release:** Junio 2026
+**Esfuerzo:** 3-4 días
+**Prioridad:** Media
+
+#### Features Implementadas
+
+##### 1. Compartir documento por URL ✅ IMPLEMENTADO
+**Complejidad:** Media | **Líneas:** ~55
+
+Botón "📤 Compartir doc": comprime el documento con `CompressionStream` (**gzip nativo del navegador**, cero dependencias) y lo codifica en base64url dentro del **hash** de la URL — que nunca se envía a ningún servidor: privacidad intacta. Al abrir el enlace, `loadDocFromHash()` descomprime y carga el documento con validación en vivo. Límite ~45KB comprimido; aviso claro en navegadores sin soporte.
+
+##### 2. Regex en buscar y reemplazar ✅ IMPLEMENTADO
+**Complejidad:** Baja | **Líneas:** ~25
+
+Checkbox "regex" en la fila de reemplazo: expresiones regulares con grupos `$1, $2...` en el reemplazo, tanto para "Reemplazar" (siguiente desde el cursor) como para "Todo". Regex inválida muestra aviso sin romper.
+
+##### 3. JSONPath en el árbol JSON ✅ IMPLEMENTADO
+**Complejidad:** Baja | **Líneas:** ~10
+
+Paridad con el árbol XML: click en una clave copia su ruta JSONPath (`$.tienda.libros[0].titulo`) al portapapeles. Las rutas XML siguen rellenando además el campo XPath (hay motor de consulta); las JSON solo se copian.
+
+##### 4. Accesibilidad ✅ IMPLEMENTADO
+**Complejidad:** Baja | **Líneas:** ~15
+
+Primera pasada WCAG: `role="alert"` en errores, `aria-live="polite"` en la validación en vivo, `aria-label` en botones de icono y selects, `aria-hidden` en los gutters decorativos, y **foco visible por teclado** (outline ámbar de 3px) en todos los controles y temas.
+
+#### Descartado en esta versión
+- **UI bilingüe ES/EN**: ~100+ strings a tocar con riesgo de regresiones; se reconsiderará como versión propia si el proyecto gana tracción internacional.
+
+#### Métricas Alcanzadas v2.9
+- **Tamaño:** ~88KB (dentro del límite duro de 100KB)
+- **Líneas:** ~2277 (bajo el techo de ~2500)
+- **Tests:** 92 casos pasando (7 nuevos)
+
+---
+
 ## 🔮 Visión Futura (Post v2.6)
 
 ### v3.0 - "XMLShield Extended" — ❌ NO-GO (decisión: Junio 2026)
@@ -420,6 +457,7 @@ Las dos features de v3.0 que sí cabían en la filosofía (XPath y Diff) ya fuer
 │          │ v2.6 ✅  │          │          │
 │          │ v2.7 ✅  │          │          │
 │          │ v2.8 ✅  │          │          │
+│          │ v2.9 ✅  │          │          │
 └──────────┴──────────┴──────────┴──────────┘
 ```
 
@@ -473,6 +511,12 @@ Las dos features de v3.0 que sí cabían en la filosofía (XPath y Diff) ya fuer
 - [x] KPIs de estadísticas pobladas también para JSON
 - [x] Descargar produce .json/.csv/.txt según el tipo real de la salida
 
+### v2.9 Success Criteria
+- [x] Enlace compartido restaura el documento exacto (roundtrip con unicode verificado)
+- [x] El hash nunca viaja al servidor (compresión y descompresión 100% locales)
+- [x] Regex con grupos $1/$2 funcional en Reemplazar y Todo; inválidas no rompen
+- [x] Roles ARIA en estados dinámicos y foco visible por teclado en los 5 temas
+
 ---
 
 ## 🚫 Features Descartadas
@@ -499,6 +543,7 @@ Las dos features de v3.0 que sí cabían en la filosofía (XPath y Diff) ya fuer
 | v2.6 | 100% | 1/1 | ~1955 | ~72KB | ✅ Released |
 | v2.7 | 100% | 11/11 | ~2100 | ~80KB | ✅ Released |
 | v2.8 | 100% | 4/4 | ~2177 | ~83KB | ✅ Released |
+| v2.9 | 100% | 4/4 | ~2277 | ~88KB | ✅ Released |
 
 ---
 
