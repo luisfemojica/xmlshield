@@ -33,9 +33,20 @@ python -m http.server 8741
 # open http://localhost:8741/tests.html
 ```
 
+To run the same suite headless from the CLI (requires `npx playwright install chromium` once):
+
+```
+python -m http.server 8741 &
+node .github/run-tests.mjs   # exits non-zero on any failure; prints "N/M tests"
+```
+
 All tests must pass before committing changes to `index.html`.
 
 CI: `.github/workflows/tests.yml` runs the full suite headless (Playwright + Chromium, via `.github/run-tests.mjs`) on every push to main and every PR.
+
+### Test Contract: `window.XMLShield`
+
+`tests.html` can only reach functions that `index.html` exports on the `window.XMLShield` object (defined at the bottom of the `<script>`, ~line 2270). The function table below lists internal functions, but only those re-exported there are testable. When you add a function the regression suite needs to exercise, add it to that export object — otherwise the test cannot call it.
 
 ## Architecture
 
