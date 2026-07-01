@@ -4,7 +4,7 @@
 
 XMLShield es una herramienta de formateo y minificación de XML que funciona completamente en tu navegador, sin enviar datos a ningún servidor. Diseñada en respuesta a preocupaciones sobre la seguridad de herramientas online, XMLShield te da control total sobre tus archivos XML sensibles.
 
-[![Version](https://img.shields.io/badge/version-2.9-blue.svg)](https://github.com/luisfemojica/xmlshield/releases)
+[![Version](https://img.shields.io/badge/version-2.10-blue.svg)](https://github.com/luisfemojica/xmlshield/releases)
 [![Tests](https://github.com/luisfemojica/xmlshield/actions/workflows/tests.yml/badge.svg)](https://github.com/luisfemojica/xmlshield/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/license-Public%20Domain-green.svg)](LICENSE)
 [![Live Demo](https://img.shields.io/badge/demo-online-brightgreen.svg)](https://luisfemojica.github.io/xmlshield/)
@@ -30,7 +30,8 @@ XMLShield es una herramienta de formateo y minificación de XML que funciona com
 - 🧭 **XPath queries** con `document.evaluate()` nativo — `//tag[@attr='x']`, `count()`, etc.
 - ♻️ **Buscar y reemplazar** en la entrada, integrado con Deshacer
 - 🆚 **Diff semántico** entre dos XML — ignora orden de atributos y espacios
-- 🎨 **Resaltado de sintaxis XML y JSON** sin dependencias externas
+- 🗄️ **Formateo y minificado de SQL** básico (cláusulas, subconsultas, keywords en mayúsculas)
+- 🎨 **Resaltado de sintaxis XML, JSON y SQL** sin dependencias externas
 - 👁️ **Vista triple** - Sintaxis resaltada, texto plano o árbol colapsable (XML y JSON)
 - 🔍 **Búsqueda con highlight** y navegación entre coincidencias
 - 🔢 **Líneas numeradas** en ambos editores, sincronizadas con el scroll
@@ -296,7 +297,13 @@ Refactorización completa con diseño moderno, panel dividido, gradientes, modo 
 - ✅ JSONPath al hacer click en el árbol JSON
 - ✅ Accesibilidad: ARIA + foco visible por teclado
 
-**🎉 Roadmap v2.x completado de principio a fin** — ~2277 líneas | ~88KB (límite duro: 100KB) | 92 tests de regresión con CI.
+### v2.10 - "SQL Formatter" ✅ COMPLETADO
+**Fecha:** Junio 2026
+
+- ✅ Formateo, minificado y resaltado de SQL básico con detección automática
+- ✅ Validación ligera (balance de paréntesis/comillas) y descarga `.sql`
+
+**🎉 Roadmap v2.x completado de principio a fin** — ~2474 líneas | ~97KB (límite duro: 100KB) | 106 tests de regresión con CI. **Presupuesto agotado: v2.x queda en modo solo-bugfixes.**
 
 ### v3.0+ - "XMLShield Extended" 🔮 2027+
 **Proyecto separado** con features avanzadas:
@@ -409,6 +416,13 @@ Para features más avanzadas, considera XMLShield Extended (v3.0+) o herramienta
 ---
 
 ## 📝 Changelog
+
+### v2.10 - Junio 2026
+- ✅ Formateo SQL básico: saltos por cláusula, sangría de subconsultas, `BETWEEN...AND` intacto, opción "Mayúsculas (SQL)"
+- ✅ Minificado SQL (los comentarios `--` pasan a `/* */`; "Quitar comentarios" también aplica)
+- ✅ Resaltado de sintaxis SQL en los 5 temas
+- ✅ Detección automática de SQL, validación ligera de balance y descarga `.sql`
+- ⚠️ Presupuesto v2.x agotado (~97KB de 100KB): la línea pasa a modo solo-bugfixes
 
 ### v2.9 - Junio 2026
 - ✅ Botón "📤 Compartir doc": el documento viaja comprimido (gzip nativo) en el hash del enlace — nunca se envía a ningún servidor

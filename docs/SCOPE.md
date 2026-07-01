@@ -161,6 +161,13 @@ El soporte JSON de v2.4-v2.7 (validar, formatear, minificar, convertir) se compl
 - ✅ **Accesibilidad WCAG (primera pasada)**: ARIA en estados dinámicos, foco visible por teclado
 - ❌ **UI bilingüe ES/EN**: descartada por ahora (~100+ strings, riesgo de regresiones); se reconsiderará si el proyecto gana tracción internacional
 
+#### 🔵 v2.10 (SQL Formatter) ✅ COMPLETADO
+**Estimado:** 2-3 días | **Complejidad:** Media | **Líneas:** +190 | **Test de 4 Preguntas: 3/4**
+
+- ✅ **Formateo SQL básico** — tokenizer propio + saltos por cláusula + sangría por paréntesis. Explícitamente **NO** es un parser SQL completo (eso serían miles de líneas): cubre consultas comunes de los dialectos mayores.
+- ✅ **Minificado y resaltado SQL**, detección automática por sentencia inicial, validación ligera de balance, descarga `.sql`
+- ⚠️ **Cierre de presupuesto**: con v2.10 el archivo queda en ~2474 líneas / ~97KB — al filo de los límites (~2500 / 100KB duro). La línea v2.x pasa a **modo solo-bugfixes**.
+
 ---
 
 ## ❌ Fuera del Alcance (v2.x)
