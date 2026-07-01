@@ -336,6 +336,74 @@
       assertTrue(!/[+/=]/.test(payload), "caracteres no aptos para URL: " + payload.slice(0, 40));
     });
 
+    // --- v2.10: formateo SQL ---
+    test("formatSQL: SELECT básico con cláusulas en líneas", () => {
+      assertEq(
+        X.formatSQL("select a, b from t where x=1 and y=2"),
+        "SELECT a,\n  b\nFROM t\nWHERE x = 1\n  AND y = 2"
+      );
+    });
+
+    test("formatSQL: subconsulta indentada por paréntesis", () => {
+      const out = X.formatSQL("select * from (select id from users) u");
+      assertTrue(out.includes("FROM (\n  SELECT id"), out);
+    });
+
+    test("formatSQL: mayúsculas de keywords opcionales", () => {
+      assertTrue(X.formatSQL("select a from t").startsWith("SELECT"));
+      assertTrue(X.formatSQL("select a from t", "  ", false).startsWith("select"));
+    });
+
+    test("formatSQL: strings intactos aunque contengan keywords y comillas escapadas", () => {
+      const out = X.formatSQL("select 'where o''brien from x' as s from t");
+      assertTrue(out.includes("'where o''brien from x'"), out);
+      assertEq((out.match(/\nFROM/g) || []).length, 1, "un solo FROM real debe romper línea: " + out);
+    });
+
+    test("formatSQL: BETWEEN x AND y no se rompe", () => {
+      const out = X.formatSQL("select a from t where b between 1 and 5 and c=2");
+      assertTrue(out.includes("BETWEEN 1 AND 5"), out);
+      assertTrue(out.includes("\n  AND c = 2"), out);
+    });
+
+    test("formatSQL: comentarios preservados", () => {
+      const out = X.formatSQL("select a -- comentario\nfrom t /* bloque */ where x=1");
+      assertTrue(out.includes("-- comentario"), out);
+      assertTrue(out.includes("/* bloque */"), out);
+    });
+
+    test("formatSQL: funciones pegadas al paréntesis, cláusulas con espacio", () => {
+      const out = X.formatSQL("select count(id) from t where a in (1,2)");
+      assertTrue(out.includes("COUNT(id)"), out);
+      assertTrue(out.includes("IN (1, 2)"), out);
+    });
+
+    test("minifySQL: compacta a una línea y convierte -- a /* */", () => {
+      const out = X.minifySQL("select a, -- nota\n  b\nfrom t");
+      assertTrue(!out.includes("\n"), "quedaron saltos: " + out);
+      assertTrue(out.includes("/* nota */"), out);
+      assertEq(X.minifySQL("select a from t where x = 1"), "select a from t where x = 1");
+    });
+
+    test("minifySQL: dropComments elimina comentarios", () => {
+      assertEq(X.minifySQL("select a -- fuera\nfrom t", true), "select a from t");
+    });
+
+    test("highlightSQL: keywords, strings, números y comentarios con clases", () => {
+      const h = X.highlightSQL("SELECT nombre FROM t WHERE edad > 30 -- filtro\nAND ciudad = 'Madrid'");
+      assertTrue(h.includes('<span class="tag">SELECT</span>'), h.slice(0, 200));
+      assertTrue(h.includes("'Madrid'</span>"), h);
+      assertTrue(h.includes('<span class="attr">30</span>'), h);
+      assertTrue(h.includes('class="comment"'), h);
+    });
+
+    test("isSQL: detecta sentencias y no confunde XML/JSON", () => {
+      assertTrue(X.isSQL("SELECT * FROM t"));
+      assertTrue(X.isSQL("  with cte as (select 1) select * from cte"));
+      assertTrue(!X.isSQL("<select/>"));
+      assertTrue(!X.isSQL('{"select": 1}'));
+    });
+
     // --- v2.5: XPath ---
     const XP_DOC = '<lib><b id="1"><t>A</t></b><b id="2"><t>B</t></b><c/></lib>';
 
@@ -568,6 +636,37 @@
       await X.loadDocFromHash();
       assertEq(idoc.getElementById("in").value, xml);
       iwin.location.hash = "";
+    });
+
+    test("UI: Formatear SQL produce salida resaltada y validación en vivo", async () => {
+      const inp = idoc.getElementById("in");
+      inp.value = "select id, nombre from usuarios where activo=1 and edad>30";
+      inp.dispatchEvent(new Event("input"));
+      idoc.getElementById("fmt").click();
+      await wait(600);
+      const syn = idoc.querySelector("#outHtml .syntax");
+      assertTrue(syn.textContent.startsWith("SELECT id,"), syn.textContent.slice(0, 60));
+      assertTrue(syn.innerHTML.includes('class="tag">SELECT'), "sin resaltado SQL");
+      assertTrue(idoc.getElementById("liveStatus").textContent.includes("SQL"),
+        "validación: " + idoc.getElementById("liveStatus").textContent);
+    });
+
+    test("UI: validación en vivo detecta paréntesis SQL desbalanceados", async () => {
+      const inp = idoc.getElementById("in");
+      inp.value = "select count( from t";
+      inp.dispatchEvent(new Event("input"));
+      await wait(600);
+      assertTrue(idoc.getElementById("liveStatus").textContent.includes("✗"),
+        idoc.getElementById("liveStatus").textContent);
+    });
+
+    test("UI: Minificar SQL compacta a una línea", async () => {
+      const inp = idoc.getElementById("in");
+      inp.value = "select a,\n  b\nfrom t";
+      inp.dispatchEvent(new Event("input"));
+      idoc.getElementById("min").click();
+      await wait(400);
+      assertEq(idoc.querySelector("#outHtml .syntax").textContent, "select a, b from t");
     });
 
     test("UI: accesibilidad — roles ARIA y foco visible presentes", () => {

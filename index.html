@@ -684,6 +684,9 @@
       <label title="Elimina todos los comentarios al minificar">
         <input id="dropComments" type="checkbox"> Quitar comentarios (min.)
       </label>
+      <label title="Convierte las palabras clave SQL a mayúsculas al formatear">
+        <input id="sqlUpper" type="checkbox" checked> Mayúsculas (SQL)
+      </label>
       <span class="sep">|</span>
       <label class="search-box">🔍
         <input id="search" type="search" placeholder="Buscar en salida...">
@@ -742,7 +745,7 @@
       <div class="panel-header"><span>📝 Entrada XML (arrastra, abre o pega)</span><span class="ph-right"><span id="liveStatus" role="status" aria-live="polite"></span><button id="demo" class="mini" title="Carga un XML de ejemplo y lo formatea">📄 Ejemplo</button></span></div>
       <div class="editor-wrap">
         <div class="gutter" id="gutterIn" aria-hidden="true">1</div>
-        <textarea id="in" wrap="off" placeholder="Pega aquí tu XML o arrastra un archivo .xml..."></textarea>
+        <textarea id="in" wrap="off" placeholder="Pega aquí tu XML, JSON o SQL, o arrastra un archivo..."></textarea>
       </div>
     </div>
 
@@ -936,7 +939,9 @@
     if (viewMode === "hl") {
       outHtml.innerHTML = outputIsJSON(lastOutputText)
         ? highlightJSON(lastOutputText)
-        : highlightXML(lastOutputText);
+        : isSQL(lastOutputText)
+          ? highlightSQL(lastOutputText)
+          : highlightXML(lastOutputText);
     } else if (viewMode === "tree") {
       outTree.innerHTML = buildTreeHTML(lastOutputText);
     } else {
@@ -1163,6 +1168,163 @@
 
   // La salida es JSON si empieza por { o [ (mismo criterio que la conversión)
   function outputIsJSON(text){ return /^[\[{]/.test((text || "").trim()); }
+
+  // ============================================================
+  // SQL (v2.10): formateo básico, minificado y resaltado.
+  // Alcance acotado: tokenizer simple + saltos por cláusula + sangría
+  // por paréntesis. NO es un parser SQL completo (eso serían miles de
+  // líneas); cubre consultas comunes de todos los dialectos mayores.
+  // ============================================================
+  const SQL_START = /^\s*(select|insert|update|delete|create|alter|drop|truncate|with|merge|explain|grant|revoke|begin|declare|use|show|describe)\b/i;
+  function isSQL(text){ return SQL_START.test(text || ""); }
+
+  const SQL_KEYWORDS = new Set(("select|from|where|and|or|not|insert|into|values|update|set|delete|create|table|view|index|drop|alter|add|column|join|inner|left|right|full|outer|cross|on|as|group|by|order|having|limit|offset|union|all|distinct|case|when|then|else|end|null|is|in|like|between|exists|with|primary|key|foreign|references|constraint|default|unique|check|asc|desc|count|sum|avg|min|max|truncate|merge|using|returning|if|begin|commit|rollback|grant|revoke|explain|analyze|cast|coalesce").split("|"));
+  // Palabras clave que actúan como función: van pegadas a su paréntesis
+  const SQL_FN = new Set(["count", "sum", "avg", "min", "max", "coalesce", "cast"]);
+
+  // Tokens: str (con '' escapada; open=true si quedó sin cerrar), ident
+  // citado ("", ``, []), comment (-- y /* */), ( ) , ; word, op
+  function tokenizeSQL(sql){
+    const tokens = [];
+    let i = 0;
+    while (i < sql.length){
+      const ch = sql[i];
+      if (/\s/.test(ch)) { i++; continue; }
+      if (ch === "-" && sql[i+1] === "-"){
+        let j = sql.indexOf("\n", i);
+        if (j === -1) j = sql.length;
+        tokens.push({ t: "comment", v: sql.slice(i, j) }); i = j; continue;
+      }
+      if (ch === "/" && sql[i+1] === "*"){
+        let j = sql.indexOf("*/", i + 2);
+        j = j === -1 ? sql.length : j + 2;
+        tokens.push({ t: "comment", v: sql.slice(i, j) }); i = j; continue;
+      }
+      if (ch === "'"){
+        let j = i + 1, open = true;
+        while (j < sql.length){
+          if (sql[j] === "'" && sql[j+1] === "'"){ j += 2; continue; }
+          if (sql[j] === "'"){ open = false; break; }
+          j++;
+        }
+        tokens.push({ t: "str", v: sql.slice(i, Math.min(j + 1, sql.length)), open }); i = j + 1; continue;
+      }
+      if (ch === '"' || ch === "`" || ch === "["){
+        const close = ch === "[" ? "]" : ch;
+        let j = sql.indexOf(close, i + 1);
+        const open = j === -1;
+        if (open) j = sql.length - 1;
+        tokens.push({ t: "ident", v: sql.slice(i, j + 1), open }); i = j + 1; continue;
+      }
+      if ("(),;".includes(ch)){ tokens.push({ t: ch, v: ch }); i++; continue; }
+      const m = sql.slice(i).match(/^[\w$.]+/);
+      if (m){ tokens.push({ t: "word", v: m[0] }); i += m[0].length; continue; }
+      tokens.push({ t: "op", v: ch }); i++;
+    }
+    return tokens;
+  }
+
+  function formatSQL(sql, indentChars = "  ", uppercase = true){
+    const tokens = tokenizeSQL(sql);
+    if (!tokens.length) return "";
+    // Cláusulas que abren línea nueva; AND/OR/ON/WHEN/ELSE/END con sangría extra
+    const BREAK = new Set(["select","from","where","group","having","order","limit","offset","union","except","intersect","values","set","returning"]);
+    const BREAK_SUB = new Set(["and","or","on","when","else","end"]);
+    const JOINW = new Set(["join","inner","left","right","full","cross"]);
+    let out = "", depth = 0, afterBetween = false;
+    const atLineStart = () => /(^|\n)[ \t]*$/.test(out) || out === "";
+    const nl = (extra = 0) => { out = out.replace(/[ \t]+$/, "") + "\n" + indentChars.repeat(Math.max(0, depth + extra)); };
+
+    for (let k = 0; k < tokens.length; k++){
+      const tok = tokens[k];
+      let v = tok.v;
+      const lower = tok.t === "word" ? v.toLowerCase() : "";
+      const isKw = tok.t === "word" && SQL_KEYWORDS.has(lower);
+      if (isKw && uppercase) v = v.toUpperCase();
+
+      if (tok.t === "("){
+        // Funciones pegadas al paréntesis (COUNT(...)); cláusulas con espacio (IN (...))
+        const prev = tokens[k-1];
+        const prevLower = prev && prev.t === "word" ? prev.v.toLowerCase() : "";
+        const prevIsFn = prev && (prev.t === "ident" ||
+          (prev.t === "word" && (!SQL_KEYWORDS.has(prevLower) || SQL_FN.has(prevLower))));
+        if (out && !/[\s(]$/.test(out) && !prevIsFn) out += " ";
+        out += "(";
+        depth++;
+        const next = tokens[k+1];
+        if (next && next.t === "word" && next.v.toLowerCase() === "select") nl(); // subconsulta
+        continue;
+      }
+      if (tok.t === ")"){
+        depth = Math.max(0, depth - 1);
+        out = out.replace(/[ \t]+$/, "") + ")";
+        continue;
+      }
+      if (tok.t === ","){
+        out = out.replace(/[ \t]+$/, "") + ",";
+        if (depth === 0) nl(1); else out += " ";
+        continue;
+      }
+      if (tok.t === ";"){
+        out = out.replace(/[ \t]+$/, "") + ";\n\n"; // línea en blanco entre sentencias
+        continue;
+      }
+      if (tok.t === "comment"){
+        if (out && !atLineStart()) out += " ";
+        out += tok.v;
+        if (tok.v.startsWith("--")) nl(); // el comentario de línea cierra la línea
+        continue;
+      }
+      if (isKw && !atLineStart()){
+        if (lower === "between") afterBetween = true;
+        if (BREAK.has(lower)) nl();
+        else if (JOINW.has(lower)){
+          const prev = (tokens[k-1] && tokens[k-1].t === "word") ? tokens[k-1].v.toLowerCase() : "";
+          if (!JOINW.has(prev) && prev !== "outer") nl();
+        }
+        else if (BREAK_SUB.has(lower)){
+          if (lower === "and" && afterBetween) afterBetween = false; // BETWEEN x AND y no rompe
+          else nl(1);
+        }
+      }
+      if (out && !/[\s(]$/.test(out)) out += " ";
+      out += v;
+    }
+    return out.trim();
+  }
+
+  // Minificado: una línea, espacios mínimos. Los comentarios -- pasan a
+  // /* */ (en una sola línea comentarían todo lo que sigue); con
+  // dropComments se eliminan.
+  function minifySQL(sql, dropComments = false){
+    const tokens = tokenizeSQL(sql).filter(t => !(dropComments && t.t === "comment"));
+    let out = "";
+    for (const tok of tokens){
+      let v = tok.v;
+      if (tok.t === "comment" && v.startsWith("--")) v = "/* " + v.slice(2).trim() + " */";
+      if (tok.t === ")" || tok.t === "," || tok.t === ";") out = out.replace(/ $/, "");
+      else if (out && !out.endsWith("(")) out += " ";
+      out += v;
+    }
+    return out.trim();
+  }
+
+  // Resaltado: keywords .tag, strings .value, números .attr, comentarios .comment
+  function highlightSQL(sql){
+    const re = /(--[^\n]*|\/\*[\s\S]*?\*\/)|('(?:''|[^'])*'?)|\b(\d+(?:\.\d+)?)\b|\b([A-Za-z_][\w$]*)\b/g;
+    let out = "", last = 0, m;
+    while ((m = re.exec(sql))){
+      out += escapeHTML(sql.slice(last, m.index));
+      if (m[1]) out += `<span class="comment">${escapeHTML(m[1])}</span>`;
+      else if (m[2]) out += `<span class="value">${escapeHTML(m[2])}</span>`;
+      else if (m[3]) out += `<span class="attr">${m[3]}</span>`;
+      else out += SQL_KEYWORDS.has(m[4].toLowerCase())
+        ? `<span class="tag">${escapeHTML(m[4])}</span>`
+        : escapeHTML(m[4]);
+      last = m.index + m[0].length;
+    }
+    return out + escapeHTML(sql.slice(last));
+  }
 
   // --- Estadísticas del documento (elementos, atributos, profundidad) ---
   function collectStats(doc){
@@ -1493,6 +1655,8 @@
       try { return jsonTreeHTML(null, JSON.parse(text), "$"); }
       catch { return `<div class="tree-leaf">⚠️ La salida actual no es JSON válido — no se puede mostrar como árbol.</div>`; }
     }
+    if (isSQL(text))
+      return `<div class="tree-leaf">⚠️ La vista de árbol aplica a XML y JSON — el SQL no tiene estructura jerárquica.</div>`;
     const doc = new DOMParser().parseFromString(text, "application/xml");
     if (doc.querySelector("parsererror"))
       return `<div class="tree-leaf">⚠️ La salida actual no es XML válido — formatea primero para ver el árbol.</div>`;
@@ -1605,6 +1769,7 @@
       compact: $("#compactAttrs").checked,
       sortattrs: $("#sortAttrs").checked,
       dropcomments: $("#dropComments").checked,
+      sqlupper: $("#sqlUpper").checked,
       theme: $("#themeSel").value,
       view: viewMode
     }));
@@ -1621,10 +1786,11 @@
     $("#compactAttrs").checked = !!p.compact;
     $("#sortAttrs").checked = !!p.sortattrs;
     $("#dropComments").checked = !!p.dropcomments;
+    $("#sqlUpper").checked = p.sqlupper !== false; // default: activado
     if (p.theme) applyTheme(p.theme);
     if (VIEW_ORDER.includes(p.view)) viewMode = p.view;
   }
-  ["#indent", "#tabs", "#preserve", "#keepTextWS", "#compactAttrs", "#sortAttrs", "#dropComments", "#remember"]
+  ["#indent", "#tabs", "#preserve", "#keepTextWS", "#compactAttrs", "#sortAttrs", "#dropComments", "#sqlUpper", "#remember"]
     .forEach(s => $(s).addEventListener("change", savePrefs));
 
   // --- Presets de configuración vía URL ---
@@ -1638,6 +1804,7 @@
     if (p.has("compact"))  $("#compactAttrs").checked = p.get("compact") === "1";
     if (p.has("sortattrs"))    $("#sortAttrs").checked = p.get("sortattrs") === "1";
     if (p.has("dropcomments")) $("#dropComments").checked = p.get("dropcomments") === "1";
+    if (p.has("sqlupper"))     $("#sqlUpper").checked = p.get("sqlupper") === "1";
     if (p.has("theme"))    applyTheme(p.get("theme"));
     const v = p.get("view");
     if (v === "texto") viewMode = "txt";
@@ -1690,6 +1857,10 @@
             collectStatsJSON(data);
           }
           catch(e) { throw new Error("❌ JSON inválido: " + e.message); }
+        } else if (isSQL(input)) {
+          const indentChars = $("#tabs").checked ? "\t" : " ".repeat(+$("#indent").value || 2);
+          output = formatSQL(input, indentChars, $("#sqlUpper").checked);
+          resetStats();
         } else {
           const indent = +$("#indent").value || 0;
           const indentChars = $("#tabs").checked ? "\t" : " ".repeat(indent);
@@ -1728,6 +1899,9 @@
             collectStatsJSON(data);
           }
           catch(e) { throw new Error("❌ JSON inválido: " + e.message); }
+        } else if (isSQL(input)) {
+          output = minifySQL(input, $("#dropComments").checked);
+          resetStats();
         } else {
           output = minify(input, {
             keepTextWS: $("#keepTextWS").checked,
@@ -1750,6 +1924,7 @@
     setDisableToggleView(false);
     const input = inTa.value;
     if (!input.trim()) { showError("⚠️ No hay contenido para convertir."); return; }
+    if (isSQL(input)) { showError("⚠️ La entrada parece SQL — la conversión XML ⇄ JSON no aplica."); return; }
 
     const sizeCheck = await checkFileSize(input);
     if (sizeCheck === false) { showError("⚠️ Operación cancelada."); return; }
@@ -1776,6 +1951,7 @@
     setDisableToggleView(false);
     const input = inTa.value;
     if (!input.trim()) { showError("⚠️ No hay XML para convertir."); return; }
+    if (isSQL(input)) { showError("⚠️ La entrada parece SQL — la conversión a CSV aplica a XML."); return; }
 
     const sizeCheck = await checkFileSize(input);
     if (sizeCheck === false) { showError("⚠️ Operación cancelada."); return; }
@@ -1929,6 +2105,7 @@
       compact: $("#compactAttrs").checked ? 1 : 0,
       sortattrs: $("#sortAttrs").checked ? 1 : 0,
       dropcomments: $("#dropComments").checked ? 1 : 0,
+      sqlupper: $("#sqlUpper").checked ? 1 : 0,
       theme: $("#themeSel").value,
       view: viewMode === "hl" ? "resaltada" : viewMode === "txt" ? "texto" : "arbol"
     });
@@ -2018,6 +2195,7 @@
     let ext = "xml", mime = "application/xml";
     if (lastOutputKind === "csv") { ext = "csv"; mime = "text/csv"; }
     else if (outputIsJSON(lastOutputText)) { ext = "json"; mime = "application/json"; }
+    else if (isSQL(lastOutputText)) { ext = "sql"; mime = "application/sql"; }
     else if (!lastOutputText.trim().startsWith("<")) { ext = "txt"; mime = "text/plain"; }
     const blob = new Blob([lastOutputText], { type: mime });
     const url = URL.createObjectURL(blob);
@@ -2207,6 +2385,24 @@
       }
       return;
     }
+    if (isSQL(v)) {
+      // Chequeo ligero (no hay parser SQL): paréntesis y comillas balanceados
+      let depth = 0, balanced = true, openStr = false;
+      for (const t of tokenizeSQL(v)) {
+        if (t.t === "(") depth++;
+        if (t.t === ")") depth--;
+        if (depth < 0) balanced = false;
+        if (t.open) openStr = true;
+      }
+      if (balanced && depth === 0 && !openStr) {
+        el.textContent = "✓ SQL (paréntesis y comillas balanceados)"; el.className = "ok";
+        clearGutterErrorLine();
+      } else {
+        el.textContent = "✗ SQL: " + (openStr ? "comillas sin cerrar" : "paréntesis desbalanceados");
+        el.className = "bad";
+      }
+      return;
+    }
     const doc = new DOMParser().parseFromString(v, "application/xml");
     if (doc.querySelector("parsererror")) {
       const msg = parseXMLError(doc);
@@ -2270,7 +2466,8 @@
   window.XMLShield = {
     prettyFormat, minify, xmlToJson, jsonToXml, xmlToCsv, xpathQuery, diffXML,
     highlightXML, highlightJSON, asEscapedString, buildTreeHTML, fmtBytes,
-    gzipB64, gunzipB64, loadDocFromHash
+    gzipB64, gunzipB64, loadDocFromHash,
+    formatSQL, minifySQL, highlightSQL, isSQL
   };
 })();
 </script>

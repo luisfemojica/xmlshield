@@ -3,7 +3,7 @@
 
 > **Documento vivo** - Se actualiza cada release
 > **Última revisión:** Junio 2026
-> **Versión actual:** v2.9 — 🎉 Roadmap v2.x COMPLETADO (v2.0 a v2.9)
+> **Versión actual:** v2.10 — 🎉 Roadmap v2.x COMPLETADO (v2.0 a v2.10) · ⚠️ presupuesto de tamaño agotado: v2.x queda en modo solo-bugfixes
 
 ---
 
@@ -430,6 +430,49 @@ Primera pasada WCAG: `role="alert"` en errores, `aria-live="polite"` en la valid
 
 ---
 
+### v2.10 - "SQL Formatter" ✅ COMPLETADO
+**Fecha de release:** Junio 2026
+**Esfuerzo:** 2-3 días
+**Prioridad:** Media (petición directa del mantenedor)
+
+#### Evaluación (Test de 4 Preguntas: 3/4)
+- ¿80% usuarios? ~parcial — los analistas/sysadmins que ya usan CSV y JSON suelen tocar SQL
+- ¿<200 líneas? ✅ para un formateador **básico** (tokenizer + saltos por cláusula + sangría por paréntesis); un formateador completo tipo sql-formatter serían miles de líneas y queda explícitamente fuera
+- ¿Auditable? ✅ justo al límite
+- ¿Offline? ✅ puro JS
+
+#### Features Implementadas
+
+##### 1. Formateo SQL ✅ IMPLEMENTADO
+**Complejidad:** Media | **Líneas:** ~110
+
+`formatSQL()`: tokenizer propio (strings con `''` escapada, identificadores citados `"" `` []`, comentarios `--` y `/* */`) + saltos de línea por cláusula (SELECT/FROM/WHERE/GROUP/ORDER/JOIN/UNION...), sangría por profundidad de paréntesis (subconsultas), AND/OR/ON con sangría extra, `BETWEEN x AND y` sin romper, funciones pegadas a su paréntesis (`COUNT(id)`) y cláusulas con espacio (`IN (1, 2)`). Opción "Mayúsculas (SQL)" para las keywords (persistida en prefs y URL).
+
+##### 2. Minificado SQL ✅ IMPLEMENTADO
+**Complejidad:** Baja | **Líneas:** ~20
+
+Una línea con espacios mínimos. Los comentarios `--` se convierten a `/* */` (en una sola línea comentarían todo lo que sigue); la opción "Quitar comentarios" existente también aplica.
+
+##### 3. Resaltado SQL ✅ IMPLEMENTADO
+**Complejidad:** Baja | **Líneas:** ~20
+
+Keywords, strings, números y comentarios con las clases de color existentes — funciona en los 5 temas sin CSS nuevo.
+
+##### 4. Integración ✅ IMPLEMENTADO
+**Complejidad:** Baja | **Líneas:** ~40
+
+Detección por sentencia inicial (SELECT/INSERT/CREATE/WITH...), validación en vivo ligera (paréntesis y comillas balanceados — **no** hay parser SQL), descarga `.sql`, avisos claros en conversiones que no aplican (XML⇄JSON, CSV, árbol).
+
+#### ⚠️ Nota de cierre
+Con v2.10 el presupuesto v2.x queda agotado: ~2474 líneas (techo ~2500) y ~97KB (límite duro 100KB). **La línea v2.x pasa a modo solo-bugfixes**; cualquier feature nueva requiere una decisión explícita del mantenedor sobre los límites.
+
+#### Métricas Alcanzadas v2.10
+- **Tamaño:** ~97KB (límite duro de 100KB)
+- **Líneas:** ~2474 (techo de ~2500)
+- **Tests:** 106 casos pasando (14 nuevos)
+
+---
+
 ## 🔮 Visión Futura (Post v2.6)
 
 ### v3.0 - "XMLShield Extended" — ❌ NO-GO (decisión: Junio 2026)
@@ -458,6 +501,7 @@ Las dos features de v3.0 que sí cabían en la filosofía (XPath y Diff) ya fuer
 │          │ v2.7 ✅  │          │          │
 │          │ v2.8 ✅  │          │          │
 │          │ v2.9 ✅  │          │          │
+│          │ v2.10 ✅ │          │          │
 └──────────┴──────────┴──────────┴──────────┘
 ```
 
@@ -517,6 +561,12 @@ Las dos features de v3.0 que sí cabían en la filosofía (XPath y Diff) ya fuer
 - [x] Regex con grupos $1/$2 funcional en Reemplazar y Todo; inválidas no rompen
 - [x] Roles ARIA en estados dinámicos y foco visible por teclado en los 5 temas
 
+### v2.10 Success Criteria
+- [x] Consultas comunes (SELECT con JOIN/GROUP/HAVING/subconsultas) formatean legibles
+- [x] Strings y comentarios nunca se alteran (BETWEEN...AND y O''Brien verificados)
+- [x] Resaltado SQL en los 5 temas sin CSS nuevo
+- [x] Archivo final <100KB y ≤~2500 líneas (~97KB, ~2474 — presupuesto agotado)
+
 ---
 
 ## 🚫 Features Descartadas
@@ -544,6 +594,7 @@ Las dos features de v3.0 que sí cabían en la filosofía (XPath y Diff) ya fuer
 | v2.7 | 100% | 11/11 | ~2100 | ~80KB | ✅ Released |
 | v2.8 | 100% | 4/4 | ~2177 | ~83KB | ✅ Released |
 | v2.9 | 100% | 4/4 | ~2277 | ~88KB | ✅ Released |
+| v2.10 | 100% | 4/4 | ~2474 | ~97KB | ✅ Released |
 
 ---
 
